@@ -49,8 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # WhiteNoise only in production — in dev, Django's runserver handles /static/ automatically
-    *(['whitenoise.middleware.WhiteNoiseMiddleware'] if not DEBUG else []),
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -151,12 +150,16 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise: In DEVELOPMENT use Django's default storage (no manifest needed).
-# In PRODUCTION, switch to: 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-if DEBUG:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media Files (Certificate uploads, resolution proof photos)
 MEDIA_URL = '/media/'
