@@ -65,27 +65,27 @@
     </div>
 
     <!-- Top Accessibility Control Bar -->
-    <div class="bg-[#0F172A] text-slate-200 py-2 px-4 text-xs flex justify-between items-center z-40 border-b border-slate-800">
+    <div class="bg-[#0F172A] text-slate-200 py-2.5 px-4 text-xs flex flex-col sm:flex-row gap-2 justify-between items-center z-40 border-b border-slate-800">
         <div class="flex items-center gap-4">
             <span class="font-bold speakable text-slate-100 tracking-wide uppercase text-[10px]" aria-label="Official Initiative of Department of Empowerment of Persons with Disabilities">
                 <i class="bi bi-shield-check text-[#FF9933] mr-1.5"></i> DEPwD (Divyangjan) Initiative
             </span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center justify-center gap-3">
             <!-- Text-to-Speech Toggle -->
             <button id="tts-toggle-btn" onclick="toggleTTS()" class="px-2.5 py-0.5 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 transition text-[11px] font-bold speakable" aria-label="Toggle voice screen reader assistance">
                 🔈 Voice Assist: OFF
             </button>
             <!-- Font Resize Control -->
             <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
-                <span class="mr-1 text-slate-400 font-bold speakable" aria-label="Font Size adjustment tools">TEXT SIZE:</span>
+                <span class="mr-1 text-slate-400 font-bold speakable hidden sm:inline" aria-label="Font Size adjustment tools">TEXT SIZE:</span>
                 <button onclick="changeFontSize(0.85)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Decrease text size">A-</button>
                 <button onclick="changeFontSize(1.0)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Standard text size">A</button>
                 <button onclick="changeFontSize(1.2)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Increase text size">A+</button>
             </div>
             <!-- Contrast Modes -->
             <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
-                <span class="mr-1 text-slate-400 font-bold speakable" aria-label="Theme contrast triggers">CONTRAST:</span>
+                <span class="mr-1 text-slate-400 font-bold speakable hidden sm:inline" aria-label="Theme contrast triggers">CONTRAST:</span>
                 <button onclick="setTheme('light')" class="w-4 h-4 rounded-full bg-white border border-slate-300" title="Standard theme" aria-label="Switch to light theme"></button>
                 <button onclick="setTheme('dark')" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-600" title="Dark theme" aria-label="Switch to dark theme"></button>
                 <button onclick="setTheme('contrast')" class="w-4 h-4 rounded-full bg-yellow-400 border border-black" title="High Contrast theme" aria-label="Switch to high contrast yellow and black theme"></button>
@@ -104,7 +104,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="font-extrabold text-lg tracking-tight text-[#0F172A]">AccessAble India</span>
-                            <span class="text-[9px] font-extrabold text-[#64748B] tracking-widest uppercase -mt-1">Smart-City Accessibility Portal</span>
+                            <span class="text-[9px] font-extrabold text-[#64748B] tracking-widest uppercase -mt-1 hidden sm:block">Smart-City Accessibility Portal</span>
                         </div>
                     </a>
                 </div>
@@ -139,7 +139,7 @@
         </div>
 
         <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-[#CBD5E1] shadow-lg absolute w-full">
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-[#CBD5E1] shadow-lg absolute w-full z-50">
             <div class="px-4 pt-2 pb-6 space-y-3 flex flex-col">
                 <a href="/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Home</a>
                 <a href="/map/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Live Accessibility Map</a>

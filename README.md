@@ -22,6 +22,16 @@ The Accessibility Friction Reader is built to assist developers, designers, and 
 
 ---
 
+## 📸 Screenshots
+
+### Landing Page
+![Landing Page](static/images/landing_screenshot.png)
+
+### Live Accessibility Map & Geogrid Dashboard
+![Live Accessibility Map](static/images/map_screenshot.png)
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Backend
