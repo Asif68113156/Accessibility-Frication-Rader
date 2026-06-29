@@ -120,7 +120,7 @@ python manage.py runserver
 Open your browser and visit:
 
 ```
-http://127.0.0.1:8000/
+https://accessibility-frication-rader-2.onrender.com/
 ```
 
 ---
