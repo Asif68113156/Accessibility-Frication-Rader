@@ -125,17 +125,7 @@ http://127.0.0.1:8000/
 
 ---
 
-## 📸 Screenshots
 
-Add screenshots of your application here.
-
-```
-screenshots/<img width="1917" height="974" alt="image" src="https://github.com/user-attachments/assets/6e4dd215-611f-4dbb-b186-2cc594cbf001" />
-
-├── 
-├── dashboard.png
-├── report.png
-```
 
 ---
 
