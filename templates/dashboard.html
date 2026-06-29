@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Dashboard | AccessAble India{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    
+    <!-- User Welcome Hero Banner - Solid Civic Aesthetic -->
+    <div class="bg-[#0F172A] text-white p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-lg shadow-sm border-b-4 border-gov-saffron relative overflow-hidden">
+        <div class="flex items-center gap-4 speakable" aria-label="Welcome banner for user {{ user.first_name }}">
+            <div class="w-14 h-14 rounded bg-slate-800 border border-slate-700 flex items-center justify-center text-[#FF9933] font-black text-2xl shadow-sm">
+                {{ user.username|slice:":2"|upper }}
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black flex items-center gap-2 text-white">
+                    Welcome back, {{ user.first_name|default:user.username }}!
+                    {% if user.verification_badge %}
+                    <span class="inline-flex items-center text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider" title="Verified PWD Citizen Profile"><i class="bi bi-patch-check-fill mr-1"></i>Verified PWD</span>
+                    {% endif %}
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Logged in as: <span class="font-extrabold uppercase tracking-widest text-[#FF9933] text-[10px]">{{ user.get_role_display }}</span></p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a href="/profile/" class="civic-btn-outline text-white border-white hover:bg-white/10 hover:text-white text-xs px-4 py-2"><i class="bi bi-pencil-square mr-1"></i> Edit Profile</a>
+            {% if user.role == 'citizen' and user.is_verified %}
+            <a href="/reports/create/" class="civic-btn bg-[#FF9933] border-[#FF9933] hover:bg-[#e68a00] text-xs px-4 py-2"><i class="bi bi-megaphone-fill"></i> File Grievance</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Citizen Dashboard Workflow -->
+    {% if user.role == 'citizen' %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Sidebar: Certificate Management & Notifications -->
+        <div class="space-y-6">
+            
+            <!-- Certificate Status Block -->
+            <div class="civic-card p-5 space-y-4">
+                <h3 class="font-extrabold text-xs uppercase tracking-wider text-[#0F172A] border-b border-slate-100 pb-2 speakable" aria-label="PWD Certificate Details Panel"><i class="bi bi-shield-lock-fill text-[#1E3A8A] mr-1"></i>PWD Certificate Status</h3>
+                
+                {% if user.is_verified %}
+                <div class="bg-[#F0FDF4] border border-[#BBF7D0] text-[#15A34A] rounded p-4 flex gap-3 text-xs speakable" aria-label="Certificate Verified. Details are registered in the DEPwD Database.">
+                    <div class="text-xl"><i class="bi bi-patch-check-fill"></i></div>
+                    <div>
+                        <p class="font-extrabold uppercase tracking-wider text-[9px] text-[#16A34A]">Government Verified</p>
+                        <p class="mt-1 text-[#15A34A]">Your PWD certificate is fully audited and authenticated. All spatial barrier reporting permissions are active.</p>
+                    </div>
+                </div>
+                {% elif user.pwd_certificate and user.pwd_certificate.verification_status == 'pending' %}
+                <div class="bg-[#FFF8F1] border border-[#FFEDD5] text-[#EA580C] rounded p-4 flex gap-3 text-xs speakable" aria-label="Certificate pending admin approval.">
+                    <div class="text-xl"><i class="bi bi-hourglass-split"></i></div>
+                    <div>
+                        <p class="font-extrabold uppercase tracking-wider text-[9px]">Awaiting Admin Approval</p>
+                        <p class="mt-1 text-slate-600">Your certificate has been uploaded successfully and is currently under manual review by a municipal admin. Please wait for approval.</p>
+                    </div>
+                </div>
+                {% else %}
+                
+                {% if user.pwd_certificate and user.pwd_certificate.verification_status == 'rejected' %}
+                <div class="bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] rounded p-4 flex gap-3 text-xs speakable mb-4" aria-label="Certificate rejected.">
+                    <div class="text-xl"><i class="bi bi-x-circle-fill"></i></div>
+                    <div>
+                        <p class="font-extrabold uppercase tracking-wider text-[9px]">Certificate Rejected</p>
+                        <p class="mt-1 text-[#991B1B]">Reason: {{ user.pwd_certificate.rejection_reason|default:"Invalid document." }} Please re-upload a valid certificate below.</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-[#FFFBEB] border border-[#FEF3C7] text-[#D97706] rounded p-4 flex gap-3 text-xs speakable" aria-label="Awaiting Certificate Upload. Please upload your government certificate below.">
+                    <div class="text-xl"><i class="bi bi-file-earmark-lock-fill"></i></div>
+                    <div>
+                        <p class="font-extrabold uppercase tracking-wider text-[9px]">Awaiting Upload</p>
+                        <p class="mt-1 text-slate-600">Submit your Government-issued PWD Certificate image/PDF below to unlock barrier reporting rights.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Certificate upload form -->
+                <form action="/auth/verify-certificate/" method="POST" enctype="multipart/form-data" class="space-y-3 pt-2">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Certificate Number (Optional)</label>
+                        <input type="text" name="certificate_number" placeholder="e.g. PWD-94285-IND" class="civic-input text-xs py-1.5">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Disability Category</label>
+                            <select name="disability_type" required class="civic-input text-xs py-1.5">
+                                <option value="Visual">Visual</option>
+                                <option value="Hearing">Hearing</option>
+                                <option value="Locomotor">Locomotor</option>
+                                <option value="Intellectual">Intellectual</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Percentage (%)</label>
+                            <input type="number" name="disability_percentage" min="40" max="100" value="40" required class="civic-input text-xs py-1.5">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Certificate Image / PDF</label>
+                        <input type="file" name="certificate_file" accept="image/*,application/pdf" required class="civic-input text-xs py-1">
+                    </div>
+
+                    <button type="submit" class="civic-btn w-full text-xs py-2"><i class="bi bi-cloud-arrow-up-fill"></i> Upload & Trigger OCR</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- In-App Notification Hub -->
+            <div class="civic-card p-5 space-y-4">
+                <h3 class="font-extrabold text-xs uppercase tracking-wider text-[#0F172A] border-b border-slate-100 pb-2 speakable" aria-label="Notifications panel"><i class="bi bi-bell-fill text-[#1E3A8A] mr-1"></i>Official Notifications</h3>
+                <div class="max-h-[220px] overflow-y-auto space-y-3">
+                    <div class="p-3 rounded bg-slate-50 border border-[#CBD5E1] text-xs speakable" aria-label="System notification: Welcome to AccessAble India! Register your certificate to access complete mapping resources.">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-extrabold text-[9px] uppercase tracking-wider text-[#1E3A8A]">System Onboarding</span>
+                            <span class="text-[9px] text-[#64748B]">1 day ago</span>
+                        </div>
+                        <p class="text-slate-600">Welcome to AccessAble India! Your profile has been registered in our civic database.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Body: Personally filed reports list -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="civic-card p-6">
+                <h3 class="font-extrabold text-base text-[#0F172A] mb-4 speakable" aria-label="Your reported barriers list"><i class="bi bi-list-columns-reverse mr-1 text-[#1E3A8A]"></i>Your Accessibility Grievances</h3>
+                
+                <div class="space-y-4">
+                    {% for report in reports %}
+                    <div class="p-5 rounded border border-[#CBD5E1] bg-white space-y-4 speakable" aria-label="Grievance card: {{ report.title }}, status: {{ report.get_status_display }}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-extrabold text-sm text-[#1E3A8A]">{{ report.title }}</h4>
+                                <p class="text-[10px] text-[#64748B] mt-0.5"><i class="bi bi-geo-alt"></i> {{ report.address }}</p>
+                            </div>
+                            <span class="civic-badge {% if report.status == 'resolved' %}badge-low bg-emerald-100 text-emerald-800 border-emerald-300{% elif report.status == 'in_progress' %}badge-medium bg-amber-100 text-amber-800 border-amber-300{% else %}badge-high bg-slate-100 text-slate-800 border-slate-300{% endif %}">{{ report.get_status_display }}</span>
+                        </div>
+                        
+                        <!-- Timeline progression slider -->
+                        <div class="relative pt-2">
+                            <div class="flex mb-2 items-center justify-between text-[10px] font-bold text-[#64748B]">
+                                <div>Grievance Logged</div>
+                                <div>Verified</div>
+                                <div>Work Assigned</div>
+                                <div class="{% if report.status == 'resolved' %}text-[#16A34A]{% else %}text-slate-400{% endif %}">Resolved</div>
+                            </div>
+                            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-slate-100 border border-[#CBD5E1]">
+                                <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#1E3A8A] {% if report.status == 'resolved' %}w-full{% elif report.status == 'in_progress' %}w-3/4{% elif report.status == 'verified' %}w-1/2{% else %}w-1/4{% endif %}"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-[10px] text-[#64748B] border-t border-slate-100 pt-3">
+                            <span>Ticket ID: #{{ report.id }} &bull; {{ report.created_at|date:"M d, Y" }}</span>
+                            <a href="/reports/export-pdf/{{ report.id }}/" class="text-[#1E3A8A] font-extrabold hover:underline"><i class="bi bi-file-pdf"></i> Export PDF</a>
+                        </div>
+
+                        {% if report.status == 'resolved' %}
+                        {% with res=report.resolution %}
+                        {% if res %}
+                        <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded space-y-2">
+                            <p class="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider"><i class="bi bi-patch-check-fill"></i> Resolution Proof Received</p>
+                            <p class="text-[11px] text-slate-600 italic">"{{ res.resolution_notes }}"</p>
+                            <p class="text-[10px] text-slate-500">Resolved by <strong>{{ res.officer.get_full_name|default:res.officer.username }}</strong> on {{ res.resolved_at|date:"M d, Y" }}</p>
+                            {% if res.resolved_proof_image %}
+                            <a href="{{ res.resolved_proof_image.url }}" target="_blank" class="inline-block mt-1">
+                                <img src="{{ res.resolved_proof_image.url }}" alt="Resolution Proof" class="rounded border border-emerald-300 max-h-32 object-cover shadow-sm">
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center bg-slate-50 border border-[#CBD5E1] rounded text-[#64748B] speakable" aria-label="No reports filed yet.">
+                        <i class="bi bi-inbox-fill text-3xl text-slate-300 mb-2 block"></i>
+                        <p class="text-xs font-bold">No grievances filed yet.</p>
+                        <p class="text-[10px] mt-1">Once your account is PWD-verified, you can log active barriers around Metro and Railway grids.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Field Officer Assignment Dashboard -->
+    {% if user.role == 'officer' %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left columns: Assigned Task Checklist -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="civic-card p-6">
+                <h3 class="font-extrabold text-base text-[#0F172A] mb-4 speakable" aria-label="Tasks Assigned To You"><i class="bi bi-card-checklist mr-1 text-[#1E3A8A]"></i>Active Municipal Assignments</h3>
+                
+                <div class="space-y-4">
+                    {% for assignment in assignments %}
+                    <div class="p-5 rounded border border-[#CBD5E1] bg-white space-y-4 speakable" aria-label="Grievance ticket details.">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-extrabold text-sm text-[#1E3A8A]">{{ assignment.title }}</h4>
+                                <p class="text-[10px] text-[#64748B] mt-0.5"><i class="bi bi-geo-alt"></i> {{ assignment.address }}</p>
+                            </div>
+                            <span class="civic-badge badge-high">{{ assignment.get_severity_display }}</span>
+                        </div>
+                        
+                        <p class="text-xs text-[#64748B] leading-relaxed">
+                            {{ assignment.description }}
+                        </p>
+
+                        <!-- Action Form to resolve -->
+                        <form action="/reports/resolve/{{ assignment.id }}/" method="POST" enctype="multipart/form-data" class="space-y-3 border-t border-slate-100 pt-4">
+                            {% csrf_token %}
+                            <h5 class="font-extrabold text-xs uppercase tracking-wider text-[#0F172A]"><i class="bi bi-check2-all"></i> Submit Remediation Proof</h5>
+                            
+                            <div>
+                                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Detailed Resolution Notes</label>
+                                <textarea name="resolution_notes" rows="3" required placeholder="Describe repair actions, new ramp gradients, or key handovers..." class="civic-input text-xs py-2"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                                <div>
+                                    <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Evidence Photo Proof (Required)</label>
+                                    <input type="file" name="resolved_proof_image" accept="image/*" required class="civic-input text-xs py-1">
+                                </div>
+                                <button type="submit" class="civic-btn text-xs py-2.5 w-full"><i class="bi bi-shield-fill-check"></i> Submit Resolution & Close Ticket</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center bg-slate-50 border border-[#CBD5E1] rounded text-[#64748B] speakable" aria-label="No active assignments.">
+                        <i class="bi bi-check-circle-fill text-3xl text-emerald-500 mb-2 block"></i>
+                        <p class="text-xs font-bold">No active compliance assignments.</p>
+                        <p class="text-[10px] mt-1">Outstanding grievances have been successfully addressed or verified.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Officer Performance -->
+        <div class="space-y-6">
+            <div class="civic-card p-5 text-center speakable" aria-label="Field officer details and monthly resolution rate.">
+                <h4 class="font-bold text-xs uppercase tracking-widest text-[#64748B]">Resolution Performance Index</h4>
+                <div class="text-4xl font-black text-[#1E3A8A] my-4">92.5%</div>
+                <div class="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-400 mt-2">
+                    <div class="border-r border-slate-200">
+                        <p class="text-[#64748B] uppercase text-[9px] tracking-wider font-extrabold">Assigned Jobs</p>
+                        <p class="text-xl font-black text-[#0F172A] mt-1">12</p>
+                    </div>
+                    <div>
+                        <p class="text-[#64748B] uppercase text-[9px] tracking-wider font-extrabold">Resolved</p>
+                        <p class="text-xl font-black text-emerald-600 mt-1">11</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

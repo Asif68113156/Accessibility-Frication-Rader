@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register for AccessAble India | PWD Citizen Portal{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper w-full max-w-2xl mx-auto my-4 relative flex items-center justify-center">
+    <!-- Animated background blur blobs -->
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+    
+    <div class="glass-card w-full max-w-2xl p-8 space-y-6 relative z-10">
+        
+        <div class="text-center speakable" aria-label="Create your AccessAble India Portal Account">
+            <h1 class="text-2xl font-extrabold tracking-tight text-[#0F172A]">Create Accessibility Profile</h1>
+            <p class="text-xs text-[#64748B] mt-1.5">Join thousands of citizens reporting barriers, tracking compliance scores, and driving municipal resolutions.</p>
+        </div>
+
+        {% if error %}
+        <div class="p-3 rounded bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#991B1B] speakable font-semibold" aria-label="Registration error: {{ error }}">
+            <i class="bi bi-exclamation-triangle-fill mr-1"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/auth/register/" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="first_name" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="First Name slot">First Name</label>
+                    <input type="text" id="first_name" name="first_name" required placeholder="e.g. Rahul" class="civic-input">
+                </div>
+                <div>
+                    <label for="last_name" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Last Name slot">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" required placeholder="e.g. Sharma" class="civic-input">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="email" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Email slot">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="e.g. rahul@example.in" class="civic-input">
+                </div>
+                <div>
+                    <label for="phone_number" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Phone Number slot">Phone Number (10 Digit)</label>
+                    <input type="tel" id="phone_number" name="phone_number" placeholder="e.g. 9876543210" class="civic-input">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="username" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Create username">Desired Username</label>
+                    <input type="text" id="username" name="username" required placeholder="e.g. citizen_rahul" class="civic-input">
+                </div>
+                <div>
+                    <label for="role" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Register Role Selection">Account Type</label>
+                    <div class="civic-input bg-slate-50 text-slate-500 text-sm font-semibold cursor-not-allowed flex items-center gap-2">
+                        <i class="bi bi-person-wheelchair text-[#1E3A8A]"></i> PWD Citizen / Public User
+                    </div>
+                    <input type="hidden" name="role" value="citizen">
+                    <p class="text-[10px] text-slate-400 mt-1"><i class="bi bi-info-circle"></i> Officer accounts are created only by municipal administrators.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="password" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Create password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" class="civic-input">
+                </div>
+                <div>
+                    <label for="password_confirm" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1 speakable" aria-label="Confirm password">Confirm Password</label>
+                    <input type="password" id="password_confirm" name="password_confirm" required placeholder="••••••••" class="civic-input">
+                </div>
+            </div>
+
+            <!-- PWD Certificate Upload Area -->
+            <div id="pwd-cert-block" class="border-t border-slate-100 pt-4 space-y-3">
+                <h4 class="font-extrabold text-xs uppercase text-[#1E3A8A] speakable" aria-label="PWD Certificate Optional slot"><i class="bi bi-file-earmark-medical mr-1"></i>Government PWD Certificate (Optional)</h4>
+                <p class="text-[10px] text-[#64748B] leading-relaxed">Uploading your disability registration proof now triggers the automated OCR validator for faster municipal onboarding.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="certificate_number" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Certificate ID Number</label>
+                        <input type="text" id="certificate_number" name="certificate_number" placeholder="e.g. PWD-94285-IND" class="civic-input">
+                    </div>
+                    <div>
+                        <label for="disability_type" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Disability Category</label>
+                        <select id="disability_type" name="disability_type" class="civic-input">
+                            <option value="Locomotor">Locomotor Disability</option>
+                            <option value="Visual">Visual Impairment</option>
+                            <option value="Hearing">Hearing Impairment</option>
+                            <option value="Intellectual">Intellectual Disability</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="certificate_file" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Upload Certificate File (PDF / Image)</label>
+                    <input type="file" id="certificate_file" name="certificate_file" accept="image/*,application/pdf" class="civic-input py-1 px-2 text-xs">
+                </div>
+            </div>
+
+            <button type="submit" class="civic-btn w-full py-3.5 mt-4 speakable" aria-label="Click to register account">
+                <i class="bi bi-person-check-fill"></i> Create Audited Profile
+            </button>
+        </form>
+
+        <div class="border-t border-slate-100 pt-4 text-center text-xs text-[#64748B] speakable" aria-label="Already registered? Sign In instead.">
+            Already have an account? <a href="/auth/login/" class="text-[#1E3A8A] font-extrabold hover:underline">Sign In &rarr;</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('role').addEventListener('change', function() {
+        const certBlock = document.getElementById('pwd-cert-block');
+        if (this.value === 'citizen') {
+            certBlock.classList.remove('hidden');
+        } else {
+            certBlock.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

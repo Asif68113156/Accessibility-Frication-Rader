@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In | AccessAble India{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper w-full max-w-md mx-auto my-4 relative flex items-center justify-center">
+    <!-- Animated background blur blobs -->
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+    
+    <div class="glass-card w-full max-w-md p-8 space-y-6 relative z-10">
+        
+        <div class="text-center speakable" aria-label="Sign in to your AccessAble India Portal Account">
+            <h1 class="text-2xl font-extrabold tracking-tight text-[#0F172A]">AccessAble Portal Sign In</h1>
+            <p class="text-xs text-[#64748B] mt-1.5">Submit your authenticated credentials to access the central reporting system.</p>
+        </div>
+
+        {% if error %}
+        <div class="p-3 rounded bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#991B1B] speakable font-semibold" aria-label="Login error notice: {{ error }}">
+            <i class="bi bi-exclamation-triangle-fill mr-1"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/auth/login/" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label for="username" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Username entry slot">Username</label>
+                <input type="text" id="username" name="username" required placeholder="e.g. citizen_rahul" class="civic-input">
+            </div>
+
+            <div>
+                <label for="password" class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Password entry slot">Password</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••" class="civic-input">
+            </div>
+
+            <div class="flex justify-between items-center text-xs font-bold pt-1">
+                <div class="flex items-center gap-1.5 text-[#64748B]">
+                    <input type="checkbox" id="remember_me" name="remember_me" class="w-3.5 h-3.5 rounded text-[#1E3A8A] border-[#CBD5E1]">
+                    <label for="remember_me" class="speakable" aria-label="Remember login credentials checkbox">Remember me</label>
+                </div>
+                <a href="#" class="text-[#1E3A8A] hover:underline speakable" aria-label="Forgot password? Retrieve here.">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="civic-btn w-full py-3.5 mt-4 speakable" aria-label="Click to sign in">
+                <i class="bi bi-box-arrow-in-right"></i> Sign In to Account
+            </button>
+        </form>
+
+        <div class="border-t border-slate-100 pt-4 text-center text-xs text-[#64748B] speakable" aria-label="New to AccessAble India? Register as PWD today.">
+            New to AccessAble India? <a href="/auth/register/" class="text-[#1E3A8A] font-extrabold hover:underline">Register Profile &rarr;</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

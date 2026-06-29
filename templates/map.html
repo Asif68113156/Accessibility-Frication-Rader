@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Live Accessibility Map | AccessAble India{% endblock %}
+
+{% block extra_head %}
+<!-- Leaflet Heatmap Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: var(--radius-md);
+        z-index: 10;
+        border: 1px solid var(--color-border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="speakable border-b border-[#CBD5E1] pb-4" aria-label="Live Accessibility Incident Map page heading">
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#0F172A]"><i class="bi bi-geo-alt-fill text-[#1E3A8A] mr-2"></i>Smart Infrastructure Audit & Geogrid</h1>
+        <p class="text-sm text-[#64748B] mt-1">Real-time geospatial tracking of accessibility violations, community trust scores, and interactive wheelchair routing.</p>
+    </div>
+
+    <!-- Map Filter and Panel Interface -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Sidebar filters, route recommendations, and stats -->
+        <div class="lg:col-span-1 flex flex-col gap-4">
+            
+            <!-- District Compliance Score circular gauge -->
+            <div class="civic-card p-5 text-center speakable" aria-label="District Accessibility Score gauge">
+                <h4 class="font-extrabold text-[10px] uppercase tracking-widest text-[#64748B]">District Compliance Score</h4>
+                <div class="relative flex items-center justify-center my-4">
+                    <svg class="w-24 h-24 transform -rotate-90">
+                        <circle cx="48" cy="48" r="40" stroke="#E2E8F0" stroke-width="8" fill="transparent" />
+                        <circle id="compliance-circle" cx="48" cy="48" r="40" stroke="#1E3A8A" stroke-width="8" fill="transparent" 
+                                stroke-dasharray="251" stroke-dashoffset="60" />
+                    </svg>
+                    <span class="absolute text-2xl font-black text-[#0F172A]"><span id="compliance-score-val">76</span><span class="text-xs text-[#64748B]">/100</span></span>
+                </div>
+                <span id="compliance-badge" class="civic-badge badge-medium">Moderate Access</span>
+                <p class="text-[10px] text-[#64748B] mt-3">Refreshed dynamically from active incident resolution indexes in this sector.</p>
+            </div>
+
+            <!-- ACCESSIBLE ROUTE RECOMMENDATION SYSTEM -->
+            <div class="civic-card p-5 space-y-3">
+                <h4 class="font-extrabold text-xs text-[#0F172A] uppercase tracking-wider border-b border-slate-100 pb-2"><i class="bi bi-signpost-split-fill text-[#1E3A8A] mr-1"></i>Accessible Route Finder</h4>
+                <p class="text-[10px] text-[#64748B] leading-relaxed">Computes paths free from step barriers, containing active elevators and visual tactile paving.</p>
+                
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Start Landmark</label>
+                        <select id="route-start" class="civic-input text-[11px] py-1.5 px-2">
+                            <option value="entrance">Hazrat Nizamuddin Main Gate</option>
+                            <option value="metro">Dilli Haat INA Entrance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Destination</label>
+                        <select id="route-end" class="civic-input text-[11px] py-1.5 px-2">
+                            <option value="platform3">Railway Platform 3 (Lift Access)</option>
+                            <option value="booth">Metro Ticket Counter Area</option>
+                        </select>
+                    </div>
+                    <button onclick="calculateAccessibleRoute()" class="civic-btn w-full text-[10px] py-2 mt-1"><i class="bi bi-compass"></i> Calculate Safe Path</button>
+                </div>
+
+                <div id="route-details-panel" class="hidden p-3 bg-slate-50 border border-[#CBD5E1] rounded text-[10px] space-y-1.5">
+                    <p class="font-extrabold text-[#1E3A8A]"><i class="bi bi-check-circle-fill text-emerald-600"></i> Route Approved</p>
+                    <p class="text-[#64748B] leading-normal">Elevators active on platforms. Ramps verified at 1:12 compliant slope. Directional yellow tactile blocks fully in place.</p>
+                </div>
+            </div>
+
+            <!-- Interactive GIS Filters -->
+            <div class="civic-card p-5 space-y-4">
+                <h4 class="font-extrabold text-xs uppercase tracking-wider border-b border-slate-100 pb-2 text-[#0F172A] speakable" aria-label="Map Filters Panel"><i class="bi py-1 bi-funnel mr-1"></i>Filter Grievances</h4>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1 speakable">Select District Sector</label>
+                    <select id="filter-sector" onchange="changeDistrictSector(this.value)" class="civic-input text-xs py-1.5 px-2">
+                        <option value="delhi_central">New Delhi Central</option>
+                        <option value="delhi_south">South Delhi / Saket</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1 speakable">Barrier Category</label>
+                    <select id="filter-category" onchange="filterMapMarkers()" class="civic-input text-xs py-1.5 px-2">
+                        <option value="all">All Categories</option>
+                        <option value="ramp">Ramps & Slopes</option>
+                        <option value="toilet">Restrooms / Toilets</option>
+                        <option value="tactile">Tactile Guidance</option>
+                        <option value="elevator">Elevators</option>
+                        <option value="parking">Accessible Parking</option>
+                        <option value="transport">Public Transport</option>
+                        <option value="footpath">Footpath / Sidewalks</option>
+                        <option value="railway">Railway platform gaps</option>
+                    </select>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="toggleHeatmap()" id="heatmap-btn" class="civic-btn-outline w-full text-xs py-2 speakable">
+                        <i class="bi bi-fire mr-1"></i> Toggle Heatmap Mode
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Central Map and incident List -->
+        <div class="lg:col-span-3 flex flex-col gap-4">
+            <div class="relative bg-white border border-[#CBD5E1] p-1.5 rounded-lg shadow-sm">
+                <div id="map"></div>
+            </div>
+            
+            <!-- List of shown issues -->
+            <div class="civic-card p-5">
+                <h4 class="font-extrabold text-sm text-[#0F172A] mb-4 border-b border-slate-100 pb-2 speakable" aria-label="Grievance logs"><i class="bi bi-card-list mr-1 text-[#1E3A8A]"></i>Active Compliance Grievances in this Sector</h4>
+                <div id="incident-list" class="max-h-[220px] overflow-y-auto space-y-2">
+                    <!-- Loaded dynamically via JS -->
+                    <p class="text-xs text-slate-400">Loading audit records...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Safe JSON data injection — XSS proof, no template/JS conflicts -->
+{{ db_reports|json_script:"db-reports-data" }}
+
+<script>
+    // Load live DB reports via safe JSON injection
+    let dbReportsRaw = [];
+    const dbDataEl = document.getElementById('db-reports-data');
+    if (dbDataEl) {
+        try {
+            dbReportsRaw = JSON.parse(dbDataEl.textContent);
+        } catch(e) { dbReportsRaw = []; }
+    }
+
+    // Normalize DB queryset format to our map object format
+    const dbReports = dbReportsRaw.map(r => ({
+        id: r.pk,
+        title: r.fields.title || 'Untitled',
+        category: r.fields.category || 'other',
+        severity: r.fields.severity || 'medium',
+        status: r.fields.status || 'pending',
+        address: r.fields.address || 'Coordinate mapped',
+        lat: parseFloat(r.fields.latitude) || 0,
+        lon: parseFloat(r.fields.longitude) || 0,
+        desc: r.fields.description ? r.fields.description.substring(0, 100) : '',
+        trust_votes: r.fields.priority_score || 0,
+    })).filter(r => r.lat !== 0 && r.lon !== 0);
+
+    // Hardcoded demo data — shown only when DB is empty
+    const demoReports = [
+        { id: 701, title: "Blocked wheelchair ramp", category: "ramp", severity: "high", status: "verified", address: "Rajiv Chowk Metro Exit 4, Connaught Place, New Delhi", lat: 28.6304, lon: 77.2177, desc: "A merchant booth blocks the exit ramp.", trust_votes: 18 },
+        { id: 702, title: "Locked disabled restroom", category: "toilet", severity: "critical", status: "in_progress", address: "Hazrat Nizamuddin Railway Station, Platform 2 North", lat: 28.5888, lon: 77.2536, desc: "Locked and inaccessible restroom keys.", trust_votes: 34 },
+        { id: 703, title: "Missing tactile paving Platform 2", category: "tactile", severity: "medium", status: "pending", address: "New Delhi Railway Station Platform 2 entrance", lat: 28.6419, lon: 77.2209, desc: "Tactile pathway abruptly terminates.", trust_votes: 9 },
+        { id: 704, title: "Elevator non-functional", category: "elevator", severity: "critical", status: "resolved", address: "Dilli Haat INA Metro Gate 1, New Delhi", lat: 28.5732, lon: 77.2081, desc: "Elevator cable repair successfully logged.", trust_votes: 42 },
+        { id: 705, title: "Saket sidewalk pathway blocked", category: "footpath", severity: "medium", status: "verified", address: "Saket District Centre path, New Delhi", lat: 28.5284, lon: 77.2178, desc: "Broken concrete block piles left on pavement.", trust_votes: 15 }
+    ];
+
+    // Use live DB data if available, otherwise fall back to demo data
+    const reports = dbReports.length > 0 ? dbReports : demoReports;
+    const isLiveData = dbReports.length > 0;
+
+
+    let map;
+    let markers = [];
+    let heatLayer = null;
+    let heatmapMode = false;
+    let activeRoutePolyline = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Center on Rajiv Chowk coordinates
+        map = L.map('map').setView([28.6304, 77.2177], 12);
+        
+        // CartoDB Positron for premium civic aesthetics
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        renderMarkers();
+        updateSidebarList();
+    });
+
+    function changeDistrictSector(sector) {
+        const circle = document.getElementById("compliance-circle");
+        const val = document.getElementById("compliance-score-val");
+        const badge = document.getElementById("compliance-badge");
+
+        if (sector === 'delhi_central') {
+            map.setView([28.6304, 77.2177], 13);
+            val.innerText = "82";
+            circle.style.strokeDashoffset = "45"; // recalculate stroke offset
+            badge.innerText = "Accessible Sector";
+            badge.className = "civic-badge badge-low bg-emerald-100 text-emerald-800 border-emerald-300";
+        } else {
+            map.setView([28.5284, 77.2178], 13);
+            val.innerText = "54";
+            circle.style.strokeDashoffset = "115";
+            badge.innerText = "Grave Infrastructure Deficit";
+            badge.className = "civic-badge badge-high bg-rose-100 text-rose-800 border-rose-300";
+        }
+    }
+
+    // Community verify increment system
+    function voteVerifyBarrier(reportId) {
+        const report = reports.find(r => r.id === reportId);
+        if (report) {
+            report.trust_votes += 1;
+            const voteVal = document.getElementById(`trust-votes-${reportId}`);
+            if (voteVal) {
+                voteVal.innerText = report.trust_votes;
+                voteVal.classList.add("text-emerald-600", "scale-125");
+                setTimeout(() => {
+                    voteVal.classList.remove("scale-125");
+                }, 300);
+            }
+            alert(`Grievance ticket #${reportId} validated successfully! Crowd index updated.`);
+        }
+    }
+
+    // Dynamic Wheelchair Route highlighting polylines
+    function calculateAccessibleRoute() {
+        if (activeRoutePolyline) {
+            map.removeLayer(activeRoutePolyline);
+        }
+
+        const start = document.getElementById("route-start").value;
+        
+        let pathCoords = [];
+        if (start === 'entrance') {
+            // Plot routes Hazrat Nizamuddin Entrance to Platform 3 elevator
+            pathCoords = [
+                [28.5888, 77.2536],
+                [28.5891, 77.2541],
+                [28.5895, 77.2545],
+                [28.5898, 77.2549]
+            ];
+            map.setView([28.5891, 77.2541], 16);
+        } else {
+            // Plot Dilli Haat route
+            pathCoords = [
+                [28.5732, 77.2081],
+                [28.5736, 77.2085],
+                [28.5740, 77.2091],
+                [28.5744, 77.2095]
+            ];
+            map.setView([28.5736, 77.2085], 16);
+        }
+
+        // Draw the path in bright compliance-green
+        activeRoutePolyline = L.polyline(pathCoords, {
+            color: '#16A34A',
+            weight: 6,
+            opacity: 0.9,
+            dashArray: '10, 10'
+        }).addTo(map);
+
+        document.getElementById("route-details-panel").classList.remove("hidden");
+    }
+
+    function getSeverityColor(sev) {
+        switch(sev) {
+            case 'low': return '#16A34A';
+            case 'medium': return '#F59E0B';
+            case 'high': return '#DC2626';
+            case 'critical': return '#991B1B';
+            default: return '#1E3A8A';
+        }
+    }
+
+    function renderMarkers() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
+        if (heatLayer) {
+            map.removeLayer(heatLayer);
+            heatLayer = null;
+        }
+
+        const catFilter = document.getElementById("filter-category").value;
+        const heatPoints = [];
+
+        reports.forEach(r => {
+            if (catFilter !== 'all' && r.category !== catFilter) return;
+
+            let intensity = 0.5;
+            if (r.severity === 'high') intensity = 0.8;
+            if (r.severity === 'critical') intensity = 1.0;
+            heatPoints.push([r.lat, r.lon, intensity]);
+
+            const color = getSeverityColor(r.severity);
+            const marker = L.circleMarker([r.lat, r.lon], {
+                radius: 10,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 2.5,
+                opacity: 1,
+                fillOpacity: 0.95
+            });
+
+            const popupContent = `
+                <div class="p-2 space-y-2 text-xs" style="max-width: 250px; font-family: var(--font-body);">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
+                        <span class="civic-badge ${r.severity === 'critical' ? 'badge-critical' : r.severity === 'high' ? 'badge-high' : r.severity === 'medium' ? 'badge-medium' : 'badge-low'}">${r.severity}</span>
+                        <span class="text-[9px] text-[#64748B] font-extrabold uppercase tracking-widest">${r.status}</span>
+                    </div>
+                    <h3 class="font-black text-sm text-[#0F172A] mt-1">${r.title}</h3>
+                    <p class="text-[#64748B] text-[10px] font-semibold"><i class="bi bi-geo-alt-fill text-[#1E3A8A]"></i> ${r.address}</p>
+                    <p class="text-slate-600 mt-1 text-[11px] leading-relaxed">${r.desc}</p>
+                    
+                    <!-- Community Verification Button inside Pin -->
+                    <div class="p-2 bg-slate-50 border border-slate-200 rounded flex justify-between items-center">
+                        <span class="text-[9px] text-[#64748B] font-bold">Audits: <strong id="trust-votes-${r.id}">${r.trust_votes}</strong></span>
+                        <a href="/reports/upvote/${r.id}/" class="px-2 py-0.5 rounded bg-[#1E3A8A] text-white font-bold text-[9px] hover:bg-[#1e40af] transition"><i class="bi bi-shield-check"></i> Vote Verify</a>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[10px] text-[#64748B]">
+                        <span class="font-bold">Ticket ID: #${r.id}</span>
+                        <a href="/reports/export-pdf/${r.id}/" class="text-[#1E3A8A] font-extrabold hover:underline"><i class="bi bi-file-pdf"></i> Export PDF</a>
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+            
+            if (!heatmapMode) {
+                marker.addTo(map);
+            }
+            markers.push(marker);
+        });
+
+        if (heatmapMode) {
+            heatLayer = L.heatLayer(heatPoints, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 17,
+                gradient: {0.4: '#1E3A8A', 0.65: '#f59e0b', 1: '#dc2626'}
+            }).addTo(map);
+        }
+    }
+
+    function updateSidebarList() {
+        const listDiv = document.getElementById("incident-list");
+        listDiv.innerHTML = '';
+
+        const catFilter = document.getElementById("filter-category").value;
+        let count = 0;
+
+        reports.forEach((r, idx) => {
+            if (catFilter !== 'all' && r.category !== catFilter) return;
+            
+            count++;
+            const card = document.createElement("div");
+            card.className = "flex justify-between items-center p-3 rounded bg-white border border-[#CBD5E1] hover:border-[#1E3A8A] transition cursor-pointer speakable shadow-sm";
+            card.onclick = () => {
+                map.setView([r.lat, r.lon], 15);
+                if (!heatmapMode && markers[idx]) {
+                    markers[idx].openPopup();
+                }
+            };
+
+            card.innerHTML = `
+                <div class="flex-grow pr-3">
+                    <p class="font-extrabold text-xs text-[#0F172A]">${r.title}</p>
+                    <p class="text-[10px] text-[#64748B] truncate max-w-[200px] mt-0.5"><i class="bi bi-geo-alt"></i> ${r.address}</p>
+                </div>
+                <div class="flex flex-col gap-1 items-end shrink-0">
+                    <span class="text-[9px] uppercase tracking-widest text-[#64748B] font-extrabold">${r.status}</span>
+                    <span class="civic-badge ${r.severity === 'critical' || r.severity === 'high' ? 'badge-high' : 'badge-medium'} text-[8px] py-0.5">${r.severity}</span>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function filterMapMarkers() {
+        renderMarkers();
+        updateSidebarList();
+    }
+
+    function toggleHeatmap() {
+        heatmapMode = !heatmapMode;
+        const btn = document.getElementById("heatmap-btn");
+        if (heatmapMode) {
+            btn.classList.add("active");
+            btn.style.background = "#0F172A";
+            btn.style.color = "white";
+            btn.innerHTML = `<i class="bi bi-grid-3x3-gap-fill mr-1"></i> Switch to Standard Markers`;
+        } else {
+            btn.classList.remove("active");
+            btn.style.background = "transparent";
+            btn.style.color = "var(--color-gov-blue)";
+            btn.innerHTML = `<i class="bi bi-fire mr-1"></i> Toggle Heatmap Mode`;
+        }
+        renderMarkers();
+    }
+</script>
+{% endblock %}

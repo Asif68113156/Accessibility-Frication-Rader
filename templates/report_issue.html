@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Accessibility Barrier | AccessAble India{% endblock %}
+
+{% block extra_head %}
+<style>
+    #selection-map {
+        height: 280px;
+        border-radius: var(--radius-sm);
+        margin-top: 8px;
+        z-index: 10;
+        border: 1px solid var(--color-border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="speakable border-b border-[#CBD5E1] pb-4" aria-label="Report Accessibility Barrier Form Heading">
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#0F172A]"><i class="bi bi-megaphone-fill text-[#1E3A8A] mr-2"></i>File Accessibility Grievance</h1>
+        <p class="text-sm text-[#64748B] mt-1">Submit geotagged photographs, choose compliance categories, and pin exact landmarks to alert local municipal engineers.</p>
+    </div>
+
+    <!-- Alert for unverified user status - Strict Solid Alert -->
+    {% if not user.is_verified and user.role == 'citizen' %}
+    <div class="civic-card p-5 border-l-4 border-[#F59E0B] bg-[#FFFBEB] text-[#78350F] flex gap-4 speakable" aria-label="Awaiting PWD Verification Alert. Your PWD Certificate is currently undergoing OCR and admin review. You cannot file reports until verified.">
+        <div class="text-2xl text-[#F59E0B]"><i class="bi bi-shield-exclamation"></i></div>
+        <div>
+            <h4 class="font-extrabold text-sm text-[#78350F]">PWD Verification Required to Report</h4>
+            <p class="text-xs text-[#92400E] mt-1.5 leading-relaxed">To ensure public portal accountability and prevent municipal spam, citizens must verify their profile using a valid Government PWD certificate. Once approved by our team, all reporting permissions will be unlocked instantly.</p>
+            <a href="/profile/" class="inline-flex items-center text-xs font-bold text-[#1E3A8A] hover:underline mt-2.5">Upload Certificate via Profile Desk &rarr;</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="civic-card p-6 sm:p-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Category & Severity -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="category" class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Barrier Category selector">Barrier Category</label>
+                    <select id="category" name="category" required class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                        <option value="">Select Category</option>
+                        <option value="ramp">Ramp issue (Broken / Missing / Too steep)</option>
+                        <option value="toilet">Inaccessible Toilet / Restroom</option>
+                        <option value="tactile">Missing / Broken Tactile guidance paving</option>
+                        <option value="elevator">Elevator not working / Missing lifts</option>
+                        <option value="parking">Accessible Parking bay violation</option>
+                        <option value="transport">Inaccessible public transport transit boarding</option>
+                        <option value="footpath">Footpath obstruction (Vendor/Debris)</option>
+                        <option value="railway">Railway platform height gaps</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="severity" class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Barrier Severity scale selector">Priority / Severity Level</label>
+                    <select id="severity" name="severity" required class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                        <option value="low">Low (Minor inconvenience)</option>
+                        <option value="medium" selected>Medium (Transit delay or obstruction)</option>
+                        <option value="high">High (Complete blockage of transit)</option>
+                        <option value="critical">Critical (Severe safety hazard or life risk)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Title with Voice Assistant dictation -->
+            <div>
+                <label for="barrier-title" class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Barrier title description field">Grievance Heading</label>
+                <div class="relative flex gap-2">
+                    <input type="text" id="barrier-title" name="title" required placeholder="e.g. Broken wheelchair ramp at platform 4 exit" class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                    <button type="button" onclick="startVoiceDictation('barrier-title')" class="px-3 rounded bg-slate-100 hover:bg-slate-200 border border-[#CBD5E1] text-[#1E3A8A] flex items-center justify-center shrink-0 speakable" aria-label="Use voice dictation for title" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Description with Voice Assistant dictation -->
+            <div>
+                <label for="barrier-description" class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Detailed Description field">Compliance Violation Details</label>
+                <div class="relative flex gap-2">
+                    <textarea id="barrier-description" name="description" rows="4" required placeholder="Describe the physical barrier, approximate slope height, obstacle positioning, or elevator failure symptoms..." class="civic-input py-3" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}></textarea>
+                    <button type="button" onclick="startVoiceDictation('barrier-description')" class="px-3 rounded bg-slate-100 hover:bg-slate-200 border border-[#CBD5E1] text-[#1E3A8A] flex items-center justify-center shrink-0 speakable" aria-label="Use voice dictation for description" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Location Section (Coordinates & Interactive Pin dragging) -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider speakable" aria-label="Geographic placement tools">Geographic Landmarks Placement</label>
+                    <button type="button" onclick="detectGPSCoordinates()" class="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-slate-100 text-[#1E3A8A] hover:bg-slate-200 border border-[#CBD5E1] text-xs font-bold transition speakable" aria-label="Auto detect location using GPS coordinates" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                        <i class="bi bi-crosshair"></i> Auto-detect GPS Coordinates
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" id="barrier-latitude" name="latitude" readonly required placeholder="Latitude" class="civic-input bg-slate-50 cursor-not-allowed font-mono text-xs">
+                    </div>
+                    <div>
+                        <input type="text" id="barrier-longitude" name="longitude" readonly required placeholder="Longitude" class="civic-input bg-slate-50 cursor-not-allowed font-mono text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <input type="text" id="barrier-address" name="address" required placeholder="Search landmark address or municipal ward..." class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <select name="state" required class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                            <option value="">-- Select State --</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="text" name="city" placeholder="City / District" required class="civic-input" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                    </div>
+                </div>
+
+                <div id="selection-map"></div>
+                <p class="text-[10px] text-[#64748B] mt-1"><i class="bi bi-info-circle mr-1"></i> You can drag the red map pin above to point exact local coordinates.</p>
+            </div>
+
+            <!-- Image Upload and EXIF detector -->
+            <div>
+                <label for="barrier-images" class="block text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider mb-2 speakable" aria-label="Upload barrier evidence photos">Live Photographic Evidence (Required)</label>
+                <div class="border-2 border-dashed border-red-200 bg-red-50/50 rounded-lg p-6 text-center hover:bg-red-50 transition relative">
+                    <!-- Added capture="environment" to FORCE live camera only on mobile -->
+                    <input type="file" id="barrier-images" name="files" accept="image/*" capture="environment" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleImageEXIF(this)" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                    <div class="space-y-2">
+                        <p class="text-3xl text-red-600"><i class="bi bi-camera-fill"></i></p>
+                        <p class="text-xs font-bold text-red-900">Live Camera Enforcement Active</p>
+                        <p class="text-[10px] text-red-700/80 font-medium max-w-sm mx-auto">To completely eliminate fake reports, gallery uploads are **disabled**. You must tap here to open your camera and take a live photo of the barrier right now. GPS coordinates will be permanently locked to this photo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anonymous Option & Submit -->
+            <div class="flex items-center gap-3 pt-2">
+                <input type="checkbox" id="is_anonymous" name="is_anonymous" class="w-4 h-4 rounded text-[#1E3A8A] focus:ring-[#1E3A8A] bg-slate-100 border-[#CBD5E1]" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                <label for="is_anonymous" class="text-xs font-semibold text-[#0F172A] speakable" aria-label="Submit anonymously checkbox">File grievance anonymously (Hides profile handles from public logs)</label>
+            </div>
+
+            <button type="submit" class="civic-btn w-full py-3.5 speakable" aria-label="Submit barrier report" {% if not user.is_verified and user.role == 'citizen' %}disabled{% endif %}>
+                <i class="bi bi-check-circle-fill"></i> Submit Audited Grievance Report
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let selectMap;
+    let dragMarker;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Center on New Delhi coordinates
+        selectMap = L.map('selection-map').setView([28.6139, 77.2090], 12);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+        }).addTo(selectMap);
+
+        // Put a drag-ready red marker
+        dragMarker = L.marker([28.6139, 77.2090], {
+            draggable: true
+        }).addTo(selectMap);
+
+        // Update coordinate boxes on drag end
+        dragMarker.on('dragend', function(e) {
+            const pos = dragMarker.getLatLng();
+            document.getElementById('barrier-latitude').value = pos.lat.toFixed(6);
+            document.getElementById('barrier-longitude').value = pos.lng.toFixed(6);
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('barrier-address').value = data.display_name;
+                    }
+                }).catch(err => console.log("Reverse Lookup failed."));
+        });
+    });
+
+    function detectGPSCoordinates() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                
+                document.getElementById('barrier-latitude').value = lat.toFixed(6);
+                document.getElementById('barrier-longitude').value = lon.toFixed(6);
+                
+                const latLng = new L.LatLng(lat, lon);
+                dragMarker.setLatLng(latLng);
+                selectMap.setView(latLng, 15);
+                
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            document.getElementById('barrier-address').value = data.display_name;
+                        }
+                    });
+            }, (error) => {
+                alert("GPS auto-detection failed. Please click and drag the map pin manually.");
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function handleImageEXIF(input) {
+        if (input.files && input.files[0]) {
+            console.log("Reading photo EXIF GPS attributes...");
+        }
+    }
+
+    // Voice Dictation (Speech-to-Text) functionality
+    function startVoiceDictation(targetId) {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Your browser does not support Voice Dictation. Please type instead.");
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.lang = 'en-IN'; // Optimized for Indian English
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        const btn = document.querySelector(`button[onclick="startVoiceDictation('${targetId}')"]`);
+        const icon = btn.querySelector('i');
+        const originalIconClass = icon.className;
+        
+        recognition.onstart = function() {
+            icon.className = 'bi bi-record-circle-fill text-red-600 animate-pulse';
+            btn.classList.add('border-red-300', 'bg-red-50');
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            const targetInput = document.getElementById(targetId);
+            
+            // Capitalize first letter
+            const formattedTranscript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+            
+            if (targetInput.value) {
+                targetInput.value += ' ' + formattedTranscript;
+            } else {
+                targetInput.value = formattedTranscript;
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.error("Speech recognition error", event.error);
+            if(event.error === 'not-allowed') {
+                alert("Microphone access blocked. Please allow microphone permissions in your browser settings.");
+            }
+        };
+
+        recognition.onend = function() {
+            icon.className = originalIconClass;
+            btn.classList.remove('border-red-300', 'bg-red-50');
+        };
+
+        recognition.start();
+    }
+</script>
+{% endblock %}

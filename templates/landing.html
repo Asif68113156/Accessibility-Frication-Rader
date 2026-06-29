@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}National Accessibility Intelligence Platform | AccessAble India{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Premium Animations & Glassmorphism */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+    .animate-float-delayed {
+        animation: float 6s ease-in-out 3s infinite;
+    }
+    
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(30, 58, 138, 0.07);
+    }
+
+    .hero-gradient-bg {
+        background: radial-gradient(circle at top right, rgba(30, 58, 138, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+    }
+
+    .premium-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .premium-card:hover {
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1);
+        border-color: rgba(30, 58, 138, 0.2);
+    }
+    
+    .gradient-text {
+        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Custom Scrollbar for Ticker */
+    .ticker-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+    .ticker-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .ticker-scroll::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-10 hero-gradient-bg -mt-8 pt-8 px-4 sm:px-0">
+
+    <!-- TOP BAR: Live Command Telemetry (Sleek Dark Mode) -->
+    <div class="bg-slate-900/95 backdrop-blur-md text-slate-100 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-700/50 text-xs speakable"
+        aria-label="National Command Center Telemetry">
+        <div class="flex items-center gap-4">
+            <div class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500 shadow-[0_0_8px_rgba(255,153,51,0.8)]"></span>
+            </div>
+            <span class="font-extrabold tracking-widest text-slate-200 uppercase text-[10px]">National Intelligence Node</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-emerald-400 font-bold tracking-wide text-[10px]"><i class="bi bi-shield-check"></i> RPwD Compliance Active</span>
+        </div>
+        <div class="flex flex-wrap gap-5 font-semibold text-slate-400 text-[10px] uppercase tracking-wider">
+            <span class="flex items-center gap-1.5"><i class="bi bi-geo-alt"></i> Municipalities: <strong class="text-white">Active India-wide</strong></span>
+            <span class="flex items-center gap-1.5"><i class="bi bi-check-all"></i> Resolutions today: <strong class="text-emerald-400" id="res-count">48</strong></span>
+            <span class="flex items-center gap-1.5"><i class="bi bi-person-fill"></i> Verified Citizens: <strong class="text-white">1.2M+</strong></span>
+        </div>
+    </div>
+
+    <!-- HERO PANEL: Deployed Ministry Platform Core -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative">
+        <!-- Background decorative elements -->
+        <div class="absolute -top-20 -left-20 w-64 h-64 bg-orange-400/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-40 -right-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Left details -->
+        <div class="lg:col-span-7 space-y-8 relative z-10">
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-white border border-slate-200 rounded shadow-sm flex items-center gap-2">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" class="h-4" alt="Emblem">
+                    <span class="text-[9px] font-black text-slate-800 tracking-tighter uppercase">Min. of Social Justice & Empowerment</span>
+                </span>
+                <span class="px-3 py-1 bg-blue-600 rounded shadow-sm text-white text-[9px] font-black tracking-widest uppercase">Digital India Phase III</span>
+            </div>
+
+            <h1 class="text-5xl sm:text-7xl font-black tracking-tighter text-[#0F172A] leading-[1.0] mt-4">
+                Accessible <span class="gradient-text">India</span> <br>
+                <span class="text-3xl sm:text-4xl text-slate-400">Sugamya Bharat Command</span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-500 leading-relaxed max-w-2xl font-medium">
+                The official national gateway for enforcing **Infrastructure Accessibility Standards**. We leverage real-time crowdsourcing, AI-driven priority scoring, and direct municipal routing to eliminate physical barriers for Divyangjan.
+            </p>
+
+            <!-- PRIMARY COMMAND ACTIONS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                <a href="/reports/create/" class="flex items-center justify-between p-5 bg-[#1E3A8A] text-white rounded-2xl hover:bg-blue-900 transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-900/20 group">
+                    <div>
+                        <p class="font-black text-sm uppercase tracking-widest mb-1">Report Barrier</p>
+                        <p class="text-[10px] text-blue-200 font-medium">Initiate Municipal Audit</p>
+                    </div>
+                    <i class="bi bi-megaphone-fill text-2xl group-hover:rotate-12 transition-transform"></i>
+                </a>
+                <a href="/map/" class="flex items-center justify-between p-5 bg-white border border-slate-200 text-slate-900 rounded-2xl hover:bg-slate-50 transition-all hover:scale-[1.02] active:scale-95 shadow-sm group">
+                    <div>
+                        <p class="font-black text-sm uppercase tracking-widest mb-1">Safe Routing</p>
+                        <p class="text-[10px] text-slate-500 font-medium">Find Barrier-Free Paths</p>
+                    </div>
+                    <i class="bi bi-map-fill text-2xl text-blue-600 transition-transform group-hover:scale-110"></i>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-6 pt-2">
+                <div class="flex -space-x-3">
+                    <div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[8px] font-bold">AK</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold">PS</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[8px] font-bold">RJ</div>
+                </div>
+                <p class="text-[10px] font-bold text-slate-500 tracking-wide uppercase">
+                    <span class="text-blue-600 font-black">Join 8,000+</span> Auditing Volunteers across India
+                </p>
+            </div>
+        </div>
+
+        <!-- Right details: Live Intelligent Analytics Preview -->
+        <div class="lg:col-span-5 relative z-10 hidden sm:block">
+            <div class="relative w-full h-[450px]">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-emerald-600/5 rounded-[40px] blur-3xl"></div>
+                
+                <!-- Floating Widget 1: Live Status -->
+                <div class="absolute top-0 right-4 w-72 glass-panel rounded-2xl p-5 shadow-xl animate-float">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[9px] font-black uppercase">Service Active</span>
+                        <span class="text-[9px] font-bold text-slate-400">14:22 GMT</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                                <i class="bi bi-activity-history"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-slate-900 text-xs">Live Resolution Rate</h4>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-slate-100 rounded-full h-1">
+                                        <div class="bg-orange-500 h-1 rounded-full" style="width: 78%"></div>
+                                    </div>
+                                    <span class="text-[9px] font-black text-slate-800">78%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Widget 2: AI Insights -->
+                <div class="absolute bottom-12 left-0 w-80 glass-panel rounded-2xl p-6 shadow-2xl animate-float-delayed">
+                   <div class="bg-slate-900 rounded-xl p-4 text-white">
+                        <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2"><i class="bi bi-cpu"></i> AI Predictive Audit</p>
+                        <p class="text-[11px] font-medium leading-relaxed">System has flagged **3 High-Severity barriers** in South Delhi for immediate inter-departmental action.</p>
+                        <div class="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center">
+                            <span class="text-[9px] text-slate-400">Action status: Escalated</span>
+                            <i class="bi bi-arrow-right-circle text-blue-400"></i>
+                        </div>
+                   </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NATIONAL COMPLIANCE AUDIT METRICS (STILL ON LANDING PAGE) -->
+    <div class="px-4 py-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center premium-card">
+                <p class="text-3xl font-black text-blue-700 mb-1">12,402</p>
+                <p class="text-[9px] font-black uppercase text-slate-500 tracking-wider">Barriers Audited</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center premium-card">
+                <p class="text-3xl font-black text-emerald-600 mb-1">9,842</p>
+                <p class="text-[9px] font-black uppercase text-slate-500 tracking-wider">Barriers Resolved</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center premium-card">
+                <p class="text-3xl font-black text-orange-500 mb-1">15.2k</p>
+                <p class="text-[9px] font-black uppercase text-slate-500 tracking-wider">AI Priority Fixes</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center premium-card">
+                <p class="text-3xl font-black text-indigo-600 mb-1">24/7</p>
+                <p class="text-[9px] font-black uppercase text-slate-500 tracking-wider">Governance Support</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CITIZEN CHARTER & PUBLIC MANDATE SECTION -->
+    <div class="bg-white rounded-2xl p-8 border border-slate-200 premium-card shadow-sm relative z-10 my-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-[10px] font-black tracking-widest text-orange-700 uppercase border border-orange-200 mb-3"><i class="bi bi-file-earmark-text"></i> Public Mandate</span>
+                <h2 class="text-3xl font-black text-slate-900 mb-4">Rights of Persons with Disabilities Act Compliance</h2>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">
+                    This platform serves as the **Digital Command Center** for enforcing Section 40-46 of the RPwD Act. We ensure every public structure—from metro stations to government offices—undergoes a rigorous community and AI-driven accessibility audit.
+                </p>
+                <div class="flex gap-10 mt-6">
+                    <div>
+                        <p class="text-xl font-black text-slate-900">100%</p>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Transparency</p>
+                    </div>
+                    <div class="border-l border-slate-200 pl-6">
+                        <p class="text-xl font-black text-slate-900">Direct</p>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Routing to DM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full md:w-64 aspect-square bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-center p-8 relative overflow-hidden group">
+                <div class="absolute inset-x-0 h-1 bg-gradient-to-r from-orange-400 via-white to-emerald-500 top-0"></div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" class="h-32 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700" alt="Emblem">
+                <div class="absolute bottom-4 inset-x-0 text-center">
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Official Audit Seal</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID: Operational Intelligence -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 pt-4">
+
+        <!-- LEFT WING: Before/After Slider, Rankings Board (8 cols) -->
+        <div class="lg:col-span-8 space-y-8">
+
+            <!-- BEFORE / AFTER INTERACTIVE COMPARISON SLIDER -->
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 premium-card shadow-sm">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h3 class="font-black text-xl text-slate-900 speakable" aria-label="Before and After transformation slider">
+                        <i class="bi bi-magic mr-2 text-indigo-500"></i>Infrastructure Remediation Impact
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-1 font-medium">Drag the slider to compare non-compliant public obstacles against Ministry-approved architectural remediation.</p>
+                </div>
+
+                <!-- Custom slider element -->
+                <div class="relative w-full h-80 rounded-xl overflow-hidden select-none bg-slate-900 shadow-inner group">
+
+                    <!-- BEFORE Layer -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-rose-900 to-rose-950 flex flex-col justify-center items-center text-center p-8">
+                        <div class="w-16 h-16 rounded-2xl bg-white/10 text-rose-400 flex items-center justify-center text-3xl mb-4 backdrop-blur-sm border border-rose-400/20">
+                            <i class="bi bi-exclamation-octagon"></i>
+                        </div>
+                        <h4 class="font-black text-white text-sm uppercase tracking-widest">Phase 1: Non-Compliant Obstacle</h4>
+                        <p class="text-xs text-rose-200/80 max-w-sm mt-3 leading-relaxed font-medium">No ramp available, steep 45-degree angle, cracked concrete steps with debris. Absolute mobility barrier.</p>
+                        <span class="absolute top-4 left-4 bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">Unresolved</span>
+                    </div>
+
+                    <!-- AFTER Layer (Clipped compliance) -->
+                    <div id="after-slide-layer" class="absolute inset-0 bg-gradient-to-br from-emerald-800 to-teal-900 border-r-4 border-white shadow-[10px_0_20px_rgba(0,0,0,0.5)] flex flex-col justify-center items-center text-center p-8 overflow-hidden transition-all duration-75" style="width: 50%;">
+                        <div class="w-[800px] flex flex-col justify-center items-center text-center shrink-0 absolute left-1/2 -translate-x-1/2 h-full">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 text-emerald-400 flex items-center justify-center text-3xl mb-4 backdrop-blur-sm border border-emerald-400/20">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <h4 class="font-black text-white text-sm uppercase tracking-widest">Phase 2: Compliant Remediation</h4>
+                            <p class="text-xs text-emerald-100/80 max-w-sm mt-3 leading-relaxed font-medium">Ministry standard slope (1:12), high-contrast tactile pathways, dual safety handrails. Fully audited access.</p>
+                            <span class="absolute top-4 right-4 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">Resolved</span>
+                        </div>
+                    </div>
+
+                    <!-- Invisible overlay range slider to drag -->
+                    <input type="range" min="0" max="100" value="50" class="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20" oninput="adjustBeforeAfterSlider(this.value)">
+                    
+                    <!-- Drag Handle visual -->
+                    <div id="slider-handle" class="absolute top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] flex items-center justify-center text-slate-800 pointer-events-none transition-all duration-75 z-10" style="left: calc(50% - 20px);">
+                        <i class="bi bi-arrows-expand text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NATIONAL ACCESSIBILITY RANKINGS -->
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 premium-card shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <h3 class="font-black text-xl text-slate-900 speakable" aria-label="National scoreboard">
+                            <i class="bi bi-trophy text-amber-500 mr-2"></i>National Governance Index
+                        </h3>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Real-time municipal performance rankings derived from AI audits.</p>
+                    </div>
+                    <div class="relative">
+                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="state-search-box" placeholder="Search state..." oninput="filterStateRankings()" class="w-full sm:w-64 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-100">
+                    <table class="w-full text-left text-sm border-collapse bg-white">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50/80 text-slate-500 uppercase font-black text-[10px] tracking-widest">
+                                <th class="py-4 px-6">Jurisdiction</th>
+                                <th class="py-4 px-6 text-center">Score</th>
+                                <th class="py-4 px-6 text-center">Backlog</th>
+                                <th class="py-4 px-6 text-center">Avg Speed</th>
+                                <th class="py-4 px-6 text-center">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="state-table-rows" class="divide-y divide-slate-100 font-medium">
+                            <tr class="state-row hover:bg-slate-50 transition-colors" data-state="delhi">
+                                <td class="py-4 px-6 font-black text-slate-900 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500"></div> Delhi NCR</td>
+                                <td class="py-4 px-6 text-center font-black text-blue-700">82.4</td>
+                                <td class="py-4 px-6 text-center text-slate-600">42</td>
+                                <td class="py-4 px-6 text-center text-slate-600">4.2d</td>
+                                <td class="py-4 px-6 text-center"><span class="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider">A</span></td>
+                            </tr>
+                            <tr class="state-row hover:bg-slate-50 transition-colors" data-state="kerala">
+                                <td class="py-4 px-6 font-black text-slate-900 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500"></div> Kerala</td>
+                                <td class="py-4 px-6 text-center font-black text-blue-700">84.9</td>
+                                <td class="py-4 px-6 text-center text-slate-600">19</td>
+                                <td class="py-4 px-6 text-center text-slate-600">3.8d</td>
+                                <td class="py-4 px-6 text-center"><span class="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider">A</span></td>
+                            </tr>
+                            <tr class="state-row hover:bg-slate-50 transition-colors" data-state="maharashtra">
+                                <td class="py-4 px-6 font-black text-slate-900 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div> Maharashtra</td>
+                                <td class="py-4 px-6 text-center font-black text-blue-700">78.1</td>
+                                <td class="py-4 px-6 text-center text-slate-600">58</td>
+                                <td class="py-4 px-6 text-center text-slate-600">5.1d</td>
+                                <td class="py-4 px-6 text-center"><span class="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">B</span></td>
+                            </tr>
+                            <tr class="state-row hover:bg-slate-50 transition-colors" data-state="uttar pradesh">
+                                <td class="py-4 px-6 font-black text-slate-900 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-rose-500"></div> Uttar Pradesh</td>
+                                <td class="py-4 px-6 text-center font-black text-blue-700">54.2</td>
+                                <td class="py-4 px-6 text-center text-slate-600">112</td>
+                                <td class="py-4 px-6 text-center text-slate-600">9.4d</td>
+                                <td class="py-4 px-6 text-center"><span class="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider">C</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT WING: Live Ops feed, AI insights panel (4 cols) -->
+        <div class="lg:col-span-4 space-y-8">
+
+            <!-- LIVE MUNICIPAL DISPATCH OPERATIONS FEED -->
+            <div class="bg-slate-900 rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
+                <div class="border-b border-slate-700/50 pb-4 mb-4 relative z-10">
+                    <h4 class="font-black text-xs text-white uppercase tracking-widest flex items-center">
+                        <span class="relative flex h-2 w-2 mr-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        Live Operations Feed
+                    </h4>
+                    <p class="text-[10px] text-slate-400 mt-1 font-medium">Real-time civic intelligence datastream.</p>
+                </div>
+
+                <div id="live-ops-ticker" class="space-y-3 h-[320px] overflow-y-auto ticker-scroll relative z-10 pr-2">
+                    <!-- Dynamic scrolling log blocks handled by JS -->
+                </div>
+            </div>
+
+            <!-- AI INFRASTRUCTURE PREDICTIVE RISK INSIGHTS -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 premium-card shadow-sm">
+                <div class="border-b border-slate-100 pb-3 mb-4">
+                    <h4 class="font-black text-xs text-slate-900 uppercase tracking-widest"><i class="bi bi-cpu text-indigo-600 mr-2"></i>AI Risk Insights</h4>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 bg-amber-50/50 border border-amber-100 rounded-xl border-l-4 border-l-amber-500 transition-all hover:shadow-md">
+                        <p class="font-black text-slate-900 text-xs flex items-center gap-2"><i class="bi bi-exclamation-triangle-fill text-amber-500"></i> Outage Prediction</p>
+                        <p class="text-[11px] text-slate-600 mt-1.5 font-medium leading-relaxed">Regression models indicate **92% elevator failure risk** at Karol Bagh subways in upcoming monsoon.</p>
+                    </div>
+
+                    <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-xl border-l-4 border-l-blue-600 transition-all hover:shadow-md">
+                        <p class="font-black text-slate-900 text-xs flex items-center gap-2"><i class="bi bi-graph-up-arrow text-blue-600"></i> Density Anomaly</p>
+                        <p class="text-[11px] text-slate-600 mt-1.5 font-medium leading-relaxed">High grievance cluster detected near Nizamuddin platforms. Proactive tactile audit recommended.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOCALIZED QR GENERATOR -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700 premium-card text-center">
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="bi bi-qr-code-scan text-2xl text-blue-400"></i>
+                </div>
+                <h4 class="font-black text-sm uppercase tracking-widest mb-2">Deploy QR Flyers</h4>
+                <p class="text-[11px] text-slate-300 leading-relaxed mb-5 font-medium">Generate infrastructure-specific QR posters for instant, app-less citizen reporting at transit hubs.</p>
+                <button onclick="simulateQRGeneration()" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-sm backdrop-blur-sm"><i class="bi bi-printer-fill mr-1"></i> Generate Asset</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+    // 1. Draggable Before/After slider control
+    function adjustBeforeAfterSlider(value) {
+        const layer = document.getElementById("after-slide-layer");
+        const handle = document.getElementById("slider-handle");
+        layer.style.width = value + "%";
+        handle.style.left = `calc(${value}% - 20px)`;
+    }
+
+    // 2. Real-time state rankings filter
+    function filterStateRankings() {
+        const query = document.getElementById("state-search-box").value.toLowerCase();
+        const rows = document.querySelectorAll(".state-row");
+        rows.forEach(r => {
+            const stateName = r.getAttribute("data-state");
+            if (stateName.includes(query)) {
+                r.style.display = "";
+            } else {
+                r.style.display = "none";
+            }
+        });
+    }
+
+    // 3. Premium Live Ticker simulator
+    const mockOpsLogs = [
+        { time: "Just now", place: "Delhi Plat. 4", text: "New broken ramp grievance filed by citizen rahul", type: "alert" },
+        { time: "3m ago", place: "Mumbai Block C", text: "Inspection scheduled for blocked tactile path", type: "info" },
+        { time: "10m ago", place: "Hazrat Nizamuddin", text: "Elevator repair assigned to Officer Rajesh", type: "alert" },
+        { time: "22m ago", place: "Karol Bagh Zone", text: "Ramp Slope verified. Ticket marked RESOLVED.", type: "success" },
+        { time: "1h ago", place: "Delhi Metro Gate 2", text: "Parking violation resolved by security", type: "success" }
+    ];
+
+    function getIconForType(type) {
+        if(type === 'alert') return '<i class="bi bi-exclamation-circle-fill text-rose-400"></i>';
+        if(type === 'success') return '<i class="bi bi-check-circle-fill text-emerald-400"></i>';
+        return '<i class="bi bi-info-circle-fill text-blue-400"></i>';
+    }
+
+    function renderOpsTicker() {
+        const ticker = document.getElementById("live-ops-ticker");
+        ticker.innerHTML = "";
+
+        mockOpsLogs.forEach((log, index) => {
+            const block = document.createElement("div");
+            // Add a subtle slide-in animation to the first item when it renders
+            const animationClass = index === 0 ? 'animate-[slideIn_0.5s_ease-out]' : '';
+            block.className = `p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 transition-all hover:bg-slate-800 ${animationClass}`;
+            block.innerHTML = `
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="font-black text-xs text-white flex items-center gap-2">${getIconForType(log.type)} ${log.place}</span>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${log.time}</span>
+                </div>
+                <p class="text-[11px] text-slate-300 font-medium pl-6 leading-relaxed">${log.text}</p>
+            `;
+            ticker.appendChild(block);
+        });
+    }
+
+    // Add keyframes for the slideIn animation dynamically
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize operations logs and set dynamic rotation
+    document.addEventListener("DOMContentLoaded", () => {
+        renderOpsTicker();
+        setInterval(() => {
+            const last = mockOpsLogs.pop();
+            mockOpsLogs.unshift(last);
+            renderOpsTicker();
+        }, 5000);
+    });
+
+    function simulateQRGeneration() {
+        alert("Generating High-Resolution PDF Asset for print dispatch...");
+    }
+</script>
+{% endblock %}

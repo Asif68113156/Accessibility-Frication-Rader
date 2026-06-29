@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Admin Dashboard | AccessAble India{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js for analytics graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    
+    <!-- Admin Headline -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#CBD5E1] pb-4 speakable" aria-label="System Administration Panel Heading">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-[#0F172A]"><i class="bi bi-shield-lock-fill text-[#1E3A8A] mr-2"></i>Administration Command Centre</h1>
+            <p class="text-sm text-[#64748B] mt-1">Audit PWD registration credentials, assign municipal field teams, and analyze city compliance metrics.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4 sm:mt-0">
+            {% if not admin_state %}
+            <form method="GET" action="" class="flex items-center gap-2">
+                <select name="state" onchange="this.form.submit()" class="civic-input text-xs py-2 px-3 rounded-lg border-[#CBD5E1] shadow-sm font-semibold text-[#0F172A]">
+                    <option value="">All States</option>
+                    {% for state in available_states %}
+                    <option value="{{ state }}" {% if selected_state == state %}selected{% endif %}>{{ state }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            {% if not admin_city and selected_state or admin_state %}
+                {% if admin_state %}
+                <form method="GET" action="" class="flex items-center gap-2">
+                {% endif %}
+                <select name="city" onchange="this.form.submit()" class="civic-input text-xs py-2 px-3 rounded-lg border-[#CBD5E1] shadow-sm font-semibold text-[#0F172A]">
+                    <option value="">All Cities</option>
+                    {% for city in available_cities %}
+                    <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+                {% if admin_state %}
+                </form>
+                {% endif %}
+            {% endif %}
+            {% if not admin_state %}
+            </form>
+            {% endif %}
+            <a href="/reports/export-csv/" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg transition shadow-sm whitespace-nowrap" aria-label="Download all reports as CSV spreadsheet">
+                <i class="bi bi-file-earmark-spreadsheet-fill text-base"></i> Export All Reports (CSV)
+            </a>
+        </div>
+    </div>
+
+    <!-- Active City Isolation Banner (Anti-Jumble) -->
+    {% if selected_city or admin_city or selected_state or admin_state %}
+    <div class="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 flex items-center justify-between shadow-sm speakable" aria-label="Jurisdiction Filter Active">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-800 text-xl border border-blue-300">
+                <i class="bi bi-geo-alt-fill animate-pulse"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-blue-900 text-sm uppercase tracking-widest">Isolated Jurisdiction Active</h3>
+                <p class="text-xs text-blue-800 font-medium mt-1">Dashboard metrics and grievance routing are currently locked to: <strong class="text-blue-900 text-base bg-white border border-blue-200 px-2.5 py-0.5 rounded shadow-sm ml-1">
+                    {% if selected_city or admin_city %}
+                        {{ selected_city|default:admin_city }}, 
+                    {% endif %}
+                    {{ selected_state|default:admin_state|default:"All States" }}
+                </strong></p>
+            </div>
+        </div>
+        {% if not admin_city and not admin_state %}
+        <a href="/dashboard/" class="px-4 py-2.5 bg-white border border-blue-300 text-blue-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-[11px] font-black uppercase tracking-widest rounded-lg shadow-sm transition">
+            <i class="bi bi-globe-central-south-asia mr-1"></i> View National Data
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Analytics Dashboard Counters -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="civic-card p-6 speakable" aria-label="Total Reported Barriers">
+            <h4 class="font-extrabold text-[10px] uppercase tracking-widest text-[#64748B]">Total Grievances Logged</h4>
+            <h3 class="text-3xl font-black text-[#1E3A8A] mt-2">{{ total_barriers }}</h3>
+            <span class="text-[10px] text-[#64748B] font-semibold mt-1.5 block"><i class="bi bi-clock-history mr-1"></i> Across 8 structural categories</span>
+        </div>
+        <div class="civic-card p-6 speakable" aria-label="Awaiting Officer Audit">
+            <h4 class="font-extrabold text-[10px] uppercase tracking-widest text-[#64748B]">Pending Verification</h4>
+            <h3 class="text-3xl font-black text-[#F59E0B] mt-2">{{ pending_audit }}</h3>
+            <span class="text-[10px] text-[#64748B] font-semibold mt-1.5 block"><i class="bi bi-patch-exclamation mr-1"></i> Needs immediate geo-audit</span>
+        </div>
+        <div class="civic-card p-6 speakable" aria-label="Resolved Barriers">
+            <h4 class="font-extrabold text-[10px] uppercase tracking-widest text-[#64748B]">Resolved Barriers</h4>
+            <h3 class="text-3xl font-black text-[#16A34A] mt-2">{{ resolved }}</h3>
+            <span class="text-[10px] text-[#64748B] font-semibold mt-1.5 block"><i class="bi bi-check2-all mr-1"></i> Municipal resolution completed</span>
+        </div>
+        <div class="civic-card p-6 speakable" aria-label="Fake Certificates Detected">
+            <h4 class="font-extrabold text-[10px] uppercase tracking-widest text-[#64748B]">Fakes / Spam Filtered</h4>
+            <h3 class="text-3xl font-black text-[#DC2626] mt-2">{{ fakes }}</h3>
+            <span class="text-[10px] text-[#64748B] font-semibold mt-1.5 block"><i class="bi bi-bug-fill mr-1"></i> Flagged by automatic OCR audit</span>
+        </div>
+    </div>
+
+    <!-- Geographic Distribution Map -->
+    <div class="civic-card p-6 mb-8 speakable" aria-label="National Grievance Map">
+        <h4 class="font-extrabold text-sm text-[#0F172A] uppercase tracking-wider mb-2 border-b border-slate-100 pb-2"><i class="bi bi-map-fill text-[#1E3A8A] mr-2"></i>City-Wise Grievance Map</h4>
+        <p class="text-xs text-slate-500 mb-4 font-medium">Analyze geographical clusters across India's 4,000 cities and 8,000 towns to decide where municipal authorities are most urgently required.</p>
+        <div id="admin-map" class="w-full h-[450px] rounded-lg z-0 border border-slate-200 shadow-inner"></div>
+    </div>
+
+    <!-- Create Field Officer Account (Admin Only) -->
+    <div class="civic-card p-6">
+        <h3 class="font-extrabold text-sm text-[#0F172A] uppercase tracking-wider mb-1 border-b border-slate-100 pb-2 speakable">
+            <i class="bi bi-person-badge-fill mr-2 text-[#1E3A8A]"></i>Add Municipal Field Officer
+        </h3>
+        <p class="text-xs text-slate-500 mb-4">Officer accounts cannot be self-registered. Only admins can onboard field officers here.</p>
+
+        <form method="POST" action="/auth/create-officer/" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Full Name</label>
+                <input type="text" name="full_name" required placeholder="e.g. Rajesh Kumar" class="civic-input text-xs py-1.5 w-full">
+            </div>
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Username</label>
+                <input type="text" name="username" required placeholder="e.g. officer_rajesh" class="civic-input text-xs py-1.5 w-full">
+            </div>
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Email Address</label>
+                <input type="email" name="email" required placeholder="officer@gov.in" class="civic-input text-xs py-1.5 w-full">
+            </div>
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Assigned State</label>
+                <select name="state" required class="civic-input text-xs py-1.5 w-full">
+                    <option value="">-- Select State --</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="West Bengal">West Bengal</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Assigned City</label>
+                <input type="text" name="city" placeholder="e.g. Mumbai (Optional)" class="civic-input text-xs py-1.5 w-full">
+            </div>
+            <div>
+                <label class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Temporary Password</label>
+                <input type="password" name="password" required placeholder="Set a temp password" class="civic-input text-xs py-1.5 w-full">
+            </div>
+            <div class="sm:col-span-2 lg:col-span-6">
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#1E3A8A] hover:bg-blue-800 text-white font-extrabold text-xs rounded-lg transition shadow-sm w-full sm:w-auto">
+                    <i class="bi bi-person-plus-fill"></i> Register Field Officer Account
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- PWD Certificate Verification Desk -->
+    <div class="civic-card p-6">
+        <h3 class="font-extrabold text-sm text-[#0F172A] uppercase tracking-wider mb-4 border-b border-slate-100 pb-2 speakable" aria-label="Pending PWD Certificate Approvals Desk"><i class="bi bi-card-checklist mr-2 text-[#1E3A8A]"></i>PWD Certificate Verification Queue</h3>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="border-b border-[#CBD5E1] text-[#64748B] bg-slate-50 uppercase font-extrabold text-[9px] tracking-wider">
+                        <th class="py-3 px-4">Citizen Username</th>
+                        <th class="py-3 px-4">Certificate Number</th>
+                        <th class="py-3 px-4">Disability Category</th>
+                        <th class="py-3 px-4">OCR Scan Match</th>
+                        <th class="py-3 px-4 text-center">Grievance Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <!-- Dynamic Verification queues from python context -->
+                    {% for cert in pending_certs %}
+                    <tr class="speakable hover:bg-slate-50/50" aria-label="Verification row for {{ cert.user.username }}. OCR confidence: 96 percent.">
+                        <td class="py-4 px-4 font-bold text-[#0F172A]">{{ cert.user.username }}</td>
+                        <td class="py-4 px-4">
+                            <p class="font-mono font-bold">{{ cert.certificate_number }}</p>
+                            {% if cert.certificate_file %}
+                            <a href="{{ cert.certificate_file.url }}" target="_blank" class="mt-1 inline-flex items-center text-[10px] font-extrabold text-[#1E3A8A] hover:underline" title="Click to view full certificate">
+                                <i class="bi bi-file-earmark-image mr-1"></i> View Document
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-4">
+                            <p class="font-bold text-[#1E3A8A]">{{ cert.disability_type }}</p>
+                            <p class="text-[10px] text-[#64748B] mt-0.5">Disability Ratio: {{ cert.disability_percentage }}%</p>
+                        </td>
+                        <td class="py-4 px-4">
+                            {% if cert.is_fake %}
+                                <span class="civic-badge badge-high bg-red-100 text-red-800 border-red-300 font-extrabold"><i class="bi bi-x-circle-fill"></i> Fake Warning!</span>
+                                <p class="text-[9px] text-[#DC2626] mt-1">{{ cert.rejection_reason }}</p>
+                            {% else %}
+                                <span class="civic-badge badge-low bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold">{{ cert.ocr_confidence|default:0.96|floatformat:2|stringformat:"f" }} Confidence</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="flex justify-center gap-2">
+                                <a href="/auth/verify-action/{{ cert.id }}/approve/" class="px-3 py-1 rounded bg-[#16A34A] text-white font-bold hover:bg-[#148a3e] transition text-[10px]">Approve & Verify</a>
+                                <a href="/auth/verify-action/{{ cert.id }}/reject/" class="px-3 py-1 rounded bg-[#DC2626] text-white font-bold hover:bg-[#b91c1c] transition text-[10px]">Flag Suspicious</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="speakable" aria-label="Verification queue empty. All pending uploads cleared.">
+                        <td colspan="5" class="py-8 px-4 text-center text-[#64748B] font-bold bg-slate-50">
+                            <i class="bi bi-inbox-fill text-3xl text-slate-300 mb-2 block"></i>
+                            Verification Queue Clear. All pending certificate uploads have been resolved.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Grievances (Reports) -->
+    <div class="civic-card p-6">
+        <h3 class="font-extrabold text-sm text-[#0F172A] uppercase tracking-wider mb-4 border-b border-slate-100 pb-2 speakable" aria-label="Recent Submitted Barrier Reports"><i class="bi bi-list-columns-reverse mr-2 text-[#1E3A8A]"></i>Recent Submitted Grievances</h3>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="border-b border-[#CBD5E1] text-[#64748B] bg-slate-50 uppercase font-extrabold text-[9px] tracking-wider">
+                        <th class="py-3 px-4">Ticket &amp; Complaint Photo</th>
+                        <th class="py-3 px-4">Category &amp; Severity</th>
+                        <th class="py-3 px-4">Reporter</th>
+                        <th class="py-3 px-4">Status &amp; Action</th>
+                        <th class="py-3 px-4 text-center">Submitted At</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for report in recent_reports %}
+                    <tr class="speakable hover:bg-slate-50/50 align-top">
+                        <td class="py-4 px-4">
+                            <p class="font-bold text-[#0F172A]">#{{ report.id }} — {{ report.title }}</p>
+                            <p class="text-[10px] text-[#64748B] mt-0.5"><i class="bi bi-geo-alt"></i> {{ report.address|default:"Location on map"|truncatechars:38 }}</p>
+                            <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">{{ report.description|truncatechars:80 }}</p>
+                            {% with photo=report.media.first %}
+                            {% if photo %}
+                            <a href="{{ photo.file.url }}" target="_blank" class="mt-2 inline-block">
+                                <img src="{{ photo.file.url }}" alt="Complaint Photo" class="rounded border border-[#CBD5E1] max-h-24 object-cover shadow-sm hover:opacity-80 transition" title="Click to view full complaint photo">
+                            </a>
+                            <p class="text-[9px] text-[#64748B] mt-1"><i class="bi bi-camera-fill text-[#1E3A8A]"></i> PWD Barrier Photo (click to enlarge)</p>
+                            {% else %}
+                            <p class="text-[9px] text-slate-400 mt-2 italic">No photo attached</p>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="py-4 px-4">
+                            <p class="font-bold text-[#1E3A8A]">{{ report.get_category_display }}</p>
+                            <span class="civic-badge {% if report.severity == 'low' %}badge-low{% elif report.severity == 'medium' %}badge-medium{% else %}badge-high{% endif %}">{{ report.get_severity_display }}</span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <p class="font-bold text-slate-700">{{ report.reporter.username|default:"Anonymous" }}</p>
+                            <p class="text-[10px] text-slate-400">{{ report.reporter.email|default:"" }}</p>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="civic-badge {% if report.status == 'resolved' %}badge-low bg-emerald-100 text-emerald-800 border-emerald-300{% elif report.status == 'in_progress' %}badge-medium bg-amber-100 text-amber-800 border-amber-300{% else %}badge-high bg-slate-100 text-slate-800 border-slate-300{% endif %}">
+                                {{ report.get_status_display }}
+                            </span>
+
+                            {% if report.status != 'resolved' %}
+
+                            <!-- Assign Officer Dropdown -->
+                            {% if field_officers %}
+                                {% with assignment=report.assignments.first %}
+                                {% if assignment %}
+                                    <div class="mt-3 bg-blue-50 border border-blue-200 rounded p-2 text-[10px] text-blue-800 font-medium flex items-center gap-2">
+                                        <i class="bi bi-person-badge-fill text-blue-600"></i> Auto-Assigned to <strong>{{ assignment.officer.username }}</strong>
+                                    </div>
+                                {% endif %}
+                                <details class="mt-1">
+                                    <summary class="text-[10px] text-blue-600 cursor-pointer font-extrabold hover:underline select-none flex items-center gap-1">
+                                        <i class="bi bi-person-badge"></i> {% if assignment %}Re-Assign Officer{% else %}Assign Officer{% endif %}
+                                    </summary>
+                                    <form action="/reports/assign-officer/{{ report.id }}/" method="POST" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded space-y-2">
+                                        {% csrf_token %}
+                                        <p class="text-[9px] font-extrabold text-blue-700 uppercase tracking-wider">👮 Select Field Officer</p>
+                                        <select name="officer_id" required class="civic-input text-[10px] py-1.5 w-full">
+                                            <option value="">-- Choose Officer --</option>
+                                            {% for officer in field_officers %}
+                                            <option value="{{ officer.id }}" {% if assignment and assignment.officer.id == officer.id %}selected{% endif %}>{{ officer.get_full_name|default:officer.username }} ({{ officer.username }})</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="bg-[#1E3A8A] hover:bg-[#1e40af] transition text-white px-3 py-2 rounded text-[10px] font-extrabold w-full shadow-sm flex items-center justify-center gap-1">
+                                            <i class="bi bi-send-fill"></i> Assign & Notify Officer
+                                        </button>
+                                    </form>
+                                </details>
+                                {% endwith %}
+                            {% endif %}
+
+                            <!-- Mark Resolved -->
+                            <details class="mt-2">
+                                <summary class="text-[10px] text-emerald-600 cursor-pointer font-extrabold hover:underline select-none flex items-center gap-1"><i class="bi bi-check-circle"></i> Mark Solved</summary>
+                                <form action="/reports/resolve/{{ report.id }}/" method="POST" enctype="multipart/form-data" class="mt-2 p-3 bg-emerald-50 border border-emerald-200 rounded space-y-2">
+                                    {% csrf_token %}
+                                    <p class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider">📋 Resolution Details</p>
+                                    <textarea name="resolution_notes" required placeholder="Describe what was repaired, e.g. Wheelchair ramp installed at gradient 1:12..." class="civic-input text-[10px] py-1.5 px-2 w-full" rows="3"></textarea>
+                                    <div>
+                                        <label class="block text-[9px] font-extrabold text-[#64748B] uppercase mb-1">📸 Resolution Proof Photo (Required — sent to PWD)</label>
+                                        <input type="file" name="resolved_proof_image" accept="image/*" required class="w-full text-[10px] cursor-pointer civic-input py-1">
+                                    </div>
+                                    <button type="submit" class="bg-[#16A34A] hover:bg-[#15803d] transition text-white px-3 py-2 rounded text-[10px] font-extrabold w-full shadow-sm flex items-center justify-center gap-1">
+                                        <i class="bi bi-envelope-check-fill"></i> Resolve &amp; Email Proof to PWD
+                                    </button>
+                                </form>
+                            </details>
+                            {% else %}
+                            {% with res=report.resolution %}
+                            {% if res and res.resolved_proof_image %}
+                            <a href="{{ res.resolved_proof_image.url }}" target="_blank" class="mt-2 inline-block">
+                                <img src="{{ res.resolved_proof_image.url }}" alt="Resolution Proof" class="rounded border border-emerald-300 max-h-16 object-cover" title="Resolution proof photo">
+                            </a>
+                            {% endif %}
+                            {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-4 text-center font-mono text-[10px] text-[#64748B]">
+                            {{ report.created_at|date:"M d, Y" }}<br>
+                            <span class="text-[9px] text-slate-400">{{ report.created_at|date:"H:i" }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="speakable">
+                        <td colspan="5" class="py-8 px-4 text-center text-[#64748B] font-bold bg-slate-50">
+                            <i class="bi bi-inbox-fill text-3xl text-slate-300 mb-2 block"></i>
+                            No reports have been submitted yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Analytics Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Category Distribution Chart -->
+        <div class="civic-card p-6">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#0F172A] mb-4 border-b border-slate-100 pb-2 speakable" aria-label="Category distribution bar chart">Incident Category Distribution</h4>
+            <div class="max-h-[300px] flex justify-center">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weekly Resolution Rates Chart -->
+        <div class="civic-card p-6">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-[#0F172A] mb-4 border-b border-slate-100 pb-2 speakable" aria-label="Weekly Resolution rates line chart">Weekly Resolution Metrics</h4>
+            <div class="max-h-[300px] flex justify-center">
+                <canvas id="resolutionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ db_reports|json_script:"db-reports-data" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Category Distribution Chart (Bar Chart) - Strict Gov Scheme
+        const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCategory, {
+            type: 'bar',
+            data: {
+                labels: ['Ramps', 'Toilets', 'Tactile Tracks', 'Lifts / Elevators', 'Parking', 'Footpaths'],
+                datasets: [{
+                    label: 'Violations Logged',
+                    data: [42, 28, 19, 15, 11, 23],
+                    backgroundColor: [
+                        '#1E3A8A', // Gov Blue
+                        '#0F172A', // Navy
+                        '#2563EB', // Accent Blue
+                        '#16A34A', // Success Green
+                        '#DC2626', // Danger Red
+                        '#64748B'  // Muted Text
+                    ],
+                    borderColor: '#cbd5e1',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 2. Resolution Metrics Chart (Line Chart)
+        const ctxResolution = document.getElementById('resolutionChart').getContext('2d');
+        new Chart(ctxResolution, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                datasets: [
+                    {
+                        label: 'Grievances Logged',
+                        data: [15, 24, 19, 32, 28],
+                        borderColor: '#1E3A8A',
+                        backgroundColor: '#1E3A8A',
+                        borderWidth: 2,
+                        tension: 0.25,
+                        fill: false
+                    },
+                    {
+                        label: 'Closed Tickets',
+                        data: [10, 18, 16, 25, 26],
+                        borderColor: '#16A34A',
+                        backgroundColor: '#16A34A',
+                        borderWidth: 2,
+                        tension: 0.25,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. Admin Map Initialization
+        const reportsDataElement = document.getElementById('db-reports-data');
+        let reports = [];
+        if (reportsDataElement) {
+            try {
+                reports = JSON.parse(reportsDataElement.textContent);
+            } catch (e) {
+                console.error("Failed to parse reports map data", e);
+            }
+        }
+
+        const map = L.map('admin-map').setView([22.5937, 78.9629], 4); // India center
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        reports.forEach(r => {
+            const lat = parseFloat(r.fields.latitude);
+            const lon = parseFloat(r.fields.longitude);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                let markerColor = '#f59e0b'; // amber
+                if (r.fields.status === 'resolved') markerColor = '#10b981'; // emerald
+                else if (r.fields.severity === 'critical') markerColor = '#ef4444'; // red
+
+                const svgIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color:${markerColor}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                L.marker([lat, lon], {icon: svgIcon}).addTo(map)
+                    .bindPopup(`
+                        <div class="text-xs font-sans">
+                            <b class="text-[#1E3A8A] uppercase">#${r.pk}: ${r.fields.title}</b><br/>
+                            <span class="text-slate-600 font-bold">${r.fields.city || 'Location Unknown'}</span><br/>
+                            <span class="text-slate-500">${r.fields.category} • ${r.fields.status}</span><br/>
+                            ${r.fields.city ? `<a href="/dashboard/?city=${encodeURIComponent(r.fields.city)}" class="text-blue-600 hover:underline mt-2 inline-block font-bold"><i class="bi bi-funnel"></i> Filter Authority for ${r.fields.city}</a>` : ''}
+                        </div>
+                    `);
+            }
+        });
+    });
+</script>
+{% endblock %}

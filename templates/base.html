@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AccessAble India | National Accessibility Governance Platform{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN for grid utilities and styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Style Sheet -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Leaflet GIS Styles & Scripts -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <style>
+        body {
+            background-color: var(--color-bg-base);
+            color: var(--color-navy);
+        }
+        nav, header {
+            font-family: var(--font-heading);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="light-mode">
+    
+    <!-- Accessibility Skip Link (WCAG compliance) -->
+    <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2 focus:rounded-md focus:shadow-md focus:z-50">
+        Skip to main content
+    </a>
+
+    <!-- Indian Government Tri-Color Top Accent Border -->
+    <div class="h-1 flex w-full">
+        <div class="w-1/3 bg-[#FF9933]"></div>
+        <div class="w-1/3 bg-white"></div>
+        <div class="w-1/3 bg-[#138808]"></div>
+    </div>
+
+    <!-- Official Government Banner -->
+    <div class="bg-[#f0f0f0] border-b border-gray-300 text-[10px] py-1.5 px-4 hidden sm:block z-50 relative">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-gray-700">
+            <div class="flex items-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Emblem of India" class="h-4 opacity-80" onerror="this.style.display='none'">
+                <span class="font-extrabold tracking-wide text-gray-800">GOVERNMENT OF INDIA <span class="font-normal text-gray-500 mx-1">|</span> भारत सरकार</span>
+                <span class="font-medium ml-1">An official website of the Ministry of Social Justice & Empowerment</span>
+            </div>
+            <div class="flex items-center gap-3 font-bold text-gray-800">
+                <a href="#" class="hover:underline text-[#1E3A8A]">English</a>
+                <span class="text-gray-400">|</span>
+                <a href="#" class="hover:underline text-gray-600">हिन्दी</a>
+                <span class="text-gray-400">|</span>
+                <span><i class="bi bi-telephone-fill text-[#1E3A8A]"></i> National PwD Helpline: <span class="text-blue-700 font-black">14446</span> / <span class="text-blue-700 font-black">1800-11-0031</span></span>
+                <span class="text-gray-400">|</span>
+                <a href="#skip" class="hover:underline text-[#1E3A8A]">Skip to Main Content</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Accessibility Control Bar -->
+    <div class="bg-[#0F172A] text-slate-200 py-2 px-4 text-xs flex justify-between items-center z-40 border-b border-slate-800">
+        <div class="flex items-center gap-4">
+            <span class="font-bold speakable text-slate-100 tracking-wide uppercase text-[10px]" aria-label="Official Initiative of Department of Empowerment of Persons with Disabilities">
+                <i class="bi bi-shield-check text-[#FF9933] mr-1.5"></i> DEPwD (Divyangjan) Initiative
+            </span>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- Text-to-Speech Toggle -->
+            <button id="tts-toggle-btn" onclick="toggleTTS()" class="px-2.5 py-0.5 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 transition text-[11px] font-bold speakable" aria-label="Toggle voice screen reader assistance">
+                🔈 Voice Assist: OFF
+            </button>
+            <!-- Font Resize Control -->
+            <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
+                <span class="mr-1 text-slate-400 font-bold speakable" aria-label="Font Size adjustment tools">TEXT SIZE:</span>
+                <button onclick="changeFontSize(0.85)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Decrease text size">A-</button>
+                <button onclick="changeFontSize(1.0)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Standard text size">A</button>
+                <button onclick="changeFontSize(1.2)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 font-bold" aria-label="Increase text size">A+</button>
+            </div>
+            <!-- Contrast Modes -->
+            <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
+                <span class="mr-1 text-slate-400 font-bold speakable" aria-label="Theme contrast triggers">CONTRAST:</span>
+                <button onclick="setTheme('light')" class="w-4 h-4 rounded-full bg-white border border-slate-300" title="Standard theme" aria-label="Switch to light theme"></button>
+                <button onclick="setTheme('dark')" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-600" title="Dark theme" aria-label="Switch to dark theme"></button>
+                <button onclick="setTheme('contrast')" class="w-4 h-4 rounded-full bg-yellow-400 border border-black" title="High Contrast theme" aria-label="Switch to high contrast yellow and black theme"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar - Solid Government Aesthetic -->
+    <nav class="sticky top-0 z-30 bg-white border-b border-[#CBD5E1] shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <a href="/" class="flex items-center gap-2.5 speakable" aria-label="AccessAble India National Portal Home">
+                        <div class="w-10 h-10 rounded-md bg-[#1E3A8A] flex items-center justify-center text-white shadow-sm">
+                            <i class="bi bi-person-wheelchair text-xl"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-extrabold text-lg tracking-tight text-[#0F172A]">AccessAble India</span>
+                            <span class="text-[9px] font-extrabold text-[#64748B] tracking-widest uppercase -mt-1">Smart-City Accessibility Portal</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable">Home</a>
+                    <a href="/map/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable">Live Accessibility Map</a>
+                    {% if user.is_authenticated %}
+                        <a href="/dashboard/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable">Control Panel</a>
+                        {% if user.role == 'citizen' %}
+                        <a href="/reports/create/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable">Report Barrier</a>
+                        {% endif %}
+                        {% if user.role == 'admin' or user.role == 'superadmin' %}
+                            <a href="/admin-panel/" class="text-sm font-semibold text-rose-600 hover:text-rose-700 transition speakable"><i class="bi bi-shield-lock-fill mr-1"></i>Municipal Admin</a>
+                        {% endif %}
+                        <a href="/profile/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable"><i class="bi bi-person-circle mr-1"></i>{{ user.username }}</a>
+                        <a href="/auth/logout/" class="civic-btn-outline text-xs px-3 py-1.5 hover:bg-rose-500 hover:text-white transition speakable"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    {% else %}
+                        <a href="/auth/login/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition speakable">Sign In</a>
+                        <a href="/auth/register/" class="civic-btn text-xs px-4 py-2 speakable"><i class="bi bi-person-plus-fill"></i> Register Profile</a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="text-[#0F172A] hover:text-[#1E3A8A] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] rounded-md p-2">
+                        <i class="bi bi-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-[#CBD5E1] shadow-lg absolute w-full">
+            <div class="px-4 pt-2 pb-6 space-y-3 flex flex-col">
+                <a href="/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Home</a>
+                <a href="/map/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Live Accessibility Map</a>
+                {% if user.is_authenticated %}
+                    <a href="/dashboard/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Control Panel</a>
+                    {% if user.role == 'citizen' %}
+                    <a href="/reports/create/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Report Barrier</a>
+                    {% endif %}
+                    {% if user.role == 'admin' or user.role == 'superadmin' %}
+                        <a href="/admin-panel/" class="text-sm font-semibold text-rose-600 hover:text-rose-700 transition py-2 border-b border-slate-100"><i class="bi bi-shield-lock-fill mr-1"></i>Municipal Admin</a>
+                    {% endif %}
+                    <a href="/profile/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100"><i class="bi bi-person-circle mr-1"></i>{{ user.username }}</a>
+                    <a href="/auth/logout/" class="text-sm font-semibold text-rose-600 hover:text-rose-700 transition py-2"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                {% else %}
+                    <a href="/auth/login/" class="text-sm font-semibold text-[#0F172A] hover:text-[#1E3A8A] transition py-2 border-b border-slate-100">Sign In</a>
+                    <a href="/auth/register/" class="text-sm font-semibold text-[#1E3A8A] hover:text-blue-800 transition py-2"><i class="bi bi-person-plus-fill"></i> Register Profile</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" tabindex="-1">
+        
+        <!-- Global Messages (Popups) -->
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-md shadow-sm border font-semibold text-sm flex items-start gap-3 
+                {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border-rose-200
+                {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border-amber-200
+                {% elif message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-200
+                {% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}" role="alert">
+                <div class="flex-shrink-0 mt-0.5">
+                    {% if message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                    {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill"></i>
+                    {% elif message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                    {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+                </div>
+                <div>{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Floating Accessibility Assist Toggle -->
+    <button id="voice-trigger-btn" onclick="startVoiceDictation('barrier-title')" class="speakable" aria-label="Mic assistant: click to start speech-to-text dictation on forms" title="Voice dictation support">
+        <i class="bi bi-mic-fill text-xl"></i>
+    </button>
+
+    <!-- AI Chatbot Assistant Widget -->
+    <div id="chatbot-widget" class="fixed bottom-6 right-24 z-50">
+        <!-- Floating trigger bubble -->
+        <button id="chatbot-toggle" onclick="toggleChatbot()" class="w-14 h-14 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center shadow-md hover:scale-105 transition-transform" aria-label="Open AI Accessibility Chatbot">
+            <i class="bi bi-chat-text-fill text-xl"></i>
+        </button>
+        
+        <!-- Chatbot Window -->
+        <div id="chatbot-window" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 h-[450px] bg-white border border-[#CBD5E1] rounded-md shadow-lg flex flex-col overflow-hidden z-50">
+            <div class="p-4 bg-[#1E3A8A] text-white flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
+                        <i class="bi bi-robot text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Sugamya AI Assistant</p>
+                        <p class="text-[10px] text-blue-100">National Civic Transparency Agent</p>
+                    </div>
+                </div>
+                <button onclick="toggleChatbot()" class="text-white hover:text-slate-200" aria-label="Close Chatbot"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 text-xs bg-[#F8FAFC]">
+                <!-- Welcome bubble -->
+                <div class="bg-white border border-[#CBD5E1] text-[#0F172A] p-3 rounded-lg rounded-tl-none shadow-sm">
+                    <p class="font-extrabold text-[#1E3A8A] mb-1">🤖 Sugamya Assistant</p>
+                    <p>Welcome! I am your municipal accessibility virtual counselor. How can I help you today?</p>
+                    <div class="mt-3 flex flex-col gap-1.5">
+                        <button onclick="askChatbot('How to report a barrier?')" class="text-left text-xs bg-slate-100 text-[#1E3A8A] px-2.5 py-1.5 rounded hover:bg-slate-200 transition font-medium">How do I report a barrier?</button>
+                        <button onclick="askChatbot('What certificates are accepted?')" class="text-left text-xs bg-slate-100 text-[#1E3A8A] px-2.5 py-1.5 rounded hover:bg-slate-200 transition font-medium">Which PWD certificates are accepted?</button>
+                        <button onclick="askChatbot('Is my report anonymous?')" class="text-left text-xs bg-slate-100 text-[#1E3A8A] px-2.5 py-1.5 rounded hover:bg-slate-200 transition font-medium">Is the grievance filing anonymous?</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-3 border-t border-[#CBD5E1] bg-white flex gap-2">
+                <input type="text" id="chat-input" placeholder="Type your query..." class="civic-input text-xs py-2 px-3 flex-grow focus:outline-none" onkeypress="handleChatPress(event)">
+                <button onclick="submitChatQuery()" class="civic-btn py-2 px-3 text-xs"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Footer -->
+    <footer class="mt-auto pt-10 pb-6 bg-[#0F172A] text-slate-300 border-t border-slate-800 speakable" aria-label="AccessAble India Footer Info">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-8 border-b border-slate-800 pb-8 mb-6">
+                <!-- Org info -->
+                <div class="sm:col-span-1">
+                    <h5 class="text-white font-bold text-sm uppercase tracking-widest mb-4">AccessAble India</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">An initiative by the Department of Empowerment of Persons with Disabilities (DEPwD), Ministry of Social Justice and Empowerment.</p>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Gov of India" class="h-10 opacity-70 grayscale">
+                </div>
+                <!-- Policies -->
+                <div>
+                    <h5 class="text-white font-bold text-xs uppercase tracking-widest mb-4">Government Policies</h5>
+                    <ul class="text-xs space-y-2 text-slate-400 font-medium">
+                        <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms & Conditions</a></li>
+                        <li><a href="#" class="hover:text-white transition">Copyright Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Hyperlinking Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Disclaimer</a></li>
+                    </ul>
+                </div>
+                <!-- Important Links -->
+                <div>
+                    <h5 class="text-white font-bold text-xs uppercase tracking-widest mb-4">Important Links</h5>
+                    <ul class="text-xs space-y-2 text-slate-400 font-medium">
+                        <li><a href="https://www.india.gov.in" target="_blank" class="hover:text-white transition">National Portal of India</a></li>
+                        <li><a href="https://mygov.in" target="_blank" class="hover:text-white transition">MyGov</a></li>
+                        <li><a href="https://disabilityaffairs.gov.in" target="_blank" class="hover:text-white transition">DEPwD Official Site</a></li>
+                        <li><a href="#" class="hover:text-white transition">CPGRAMS (Grievance Portal)</a></li>
+                    </ul>
+                </div>
+                <!-- Contact & Cert -->
+                <div>
+                    <h5 class="text-white font-bold text-xs uppercase tracking-widest mb-4">Security & Help</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-3 font-medium">
+                        <strong>Toll Free:</strong> 1800-11-0031 <br>
+                        <strong>Email:</strong> support-pwd@gov.in
+                    </p>
+                    <div class="p-3 bg-slate-800 rounded border border-slate-700 inline-block mt-2 text-center shadow-inner">
+                        <i class="bi bi-shield-fill-check text-emerald-400 text-xl"></i>
+                        <p class="text-[9px] uppercase tracking-widest mt-1 text-slate-400 font-bold">Audited by CERT-In</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center sm:flex sm:justify-between sm:items-center">
+                <p class="text-xs text-slate-400 font-medium">&copy; 2026 AccessAble India. All rights reserved.</p>
+                <div class="mt-4 sm:mt-0 flex justify-center gap-6 text-xs font-semibold text-slate-400">
+                    <span>Last Updated: 12 Jun 2026</span>
+                    <a href="#" class="hover:text-white transition text-emerald-400"><i class="bi bi-check-circle-fill"></i> WCAG 2.1 AAA Compliant</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Assistive Scripts -->
+    <script src="{% static 'js/voice.js' %}"></script>
+    <script>
+        // 1. Accessibility Themes Handler
+        function setTheme(theme) {
+            document.body.className = ''; // Reset classes
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else if (theme === 'contrast') {
+                document.body.classList.add('high-contrast');
+                localStorage.setItem('theme', 'contrast');
+            } else {
+                document.body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 2. Font Size adjustments
+        function changeFontSize(scale) {
+            document.documentElement.style.setProperty('--font-scale', scale);
+            localStorage.setItem('font-scale', scale);
+        }
+
+        // Apply saved settings
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const savedScale = localStorage.getItem('font-scale') || '1.0';
+        setTheme(savedTheme);
+        changeFontSize(savedScale);
+
+        // Mobile Menu Handler
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // 3. Chatbot Handler
+        function toggleChatbot() {
+            const chatWindow = document.getElementById('chatbot-window');
+            chatWindow.classList.toggle('hidden');
+        }
+
+        function askChatbot(query) {
+            document.getElementById('chat-input').value = query;
+            submitChatQuery();
+        }
+
+        function handleChatPress(e) {
+            if (e.key === 'Enter') {
+                submitChatQuery();
+            }
+        }
+
+        function submitChatQuery() {
+            const input = document.getElementById('chat-input');
+            const query = input.value.trim();
+            if (!query) return;
+            
+            appendMessage('user', query);
+            input.value = '';
+            
+            // Show typing indicator or small delay
+            setTimeout(() => {
+                fetch('/api/chatbot/?q=' + encodeURIComponent(query))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.response) {
+                            appendMessage('bot', data.response);
+                        }
+                    })
+                    .catch(err => {
+                        appendMessage('bot', "I'm having trouble connecting to the civic servers right now. Please try again later.");
+                    });
+            }, 300);
+        }
+
+        function appendMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            
+            if (sender === 'user') {
+                div.className = "bg-slate-200 text-[#0F172A] p-3 rounded-lg rounded-tr-none text-right ml-8 self-end shadow-sm";
+                div.innerHTML = `<p class="font-bold mb-0.5 text-[10px] text-slate-500">You</p><p class="text-left">${text}</p>`;
+            } else {
+                div.className = "bg-white border border-[#CBD5E1] text-[#0F172A] p-3 rounded-lg rounded-tl-none mr-8 shadow-sm";
+                div.innerHTML = `<p class="font-extrabold text-[#1E3A8A] mb-0.5 text-[10px]">🤖 Sugamya Assistant</p><p>${text}</p>`;
+            }
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>

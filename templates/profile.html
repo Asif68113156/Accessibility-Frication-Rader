@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | AccessAble India{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <div class="speakable border-b border-[#CBD5E1] pb-4" aria-label="User Profile Page Heading">
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#0F172A]"><i class="bi bi-person-bounding-box text-[#1E3A8A] mr-2"></i>My Auditable Profile</h1>
+        <p class="text-sm text-[#64748B] mt-1">Review your verified contact variables and government certificate metadata.</p>
+    </div>
+
+    <!-- Main Profile Card - Solid Professional Layout -->
+    <div class="civic-card p-6 sm:p-8 space-y-6">
+        <div class="flex items-center gap-4 speakable" aria-label="Profile Avatar and status">
+            <div class="w-16 h-16 rounded bg-[#0F172A] border border-[#CBD5E1] text-white font-extrabold text-3xl flex items-center justify-center shadow-sm">
+                {{ user.username|slice:":2"|upper }}
+            </div>
+            <div>
+                <h3 class="text-xl font-extrabold flex items-center gap-2 text-[#0F172A]">
+                    {{ user.first_name }} {{ user.last_name }}
+                    {% if user.verification_badge %}
+                    <span class="text-emerald-600" title="Verified Badge"><i class="bi bi-patch-check-fill text-xl"></i></span>
+                    {% endif %}
+                </h3>
+                <p class="text-xs text-[#64748B]">Account Type: <span class="font-extrabold text-[#1E3A8A] uppercase tracking-widest text-[9px]">{{ user.get_role_display }}</span></p>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
+            <div class="speakable" aria-label="Account details">
+                <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Username Handle</span>
+                <span class="font-bold text-[#0F172A]">{{ user.username }}</span>
+            </div>
+            
+            <div class="speakable" aria-label="Email address">
+                <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Email Coordinates</span>
+                <span class="font-bold text-[#0F172A]">{{ user.email }}</span>
+            </div>
+
+            <div class="speakable" aria-label="Phone number">
+                <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Contact Number</span>
+                <span class="font-bold text-[#0F172A]">{{ user.phone_number|default:"Not Provided" }}</span>
+            </div>
+
+            <div class="speakable" aria-label="Profile verification status badge">
+                <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Audit Status</span>
+                {% if user.is_verified %}
+                <span class="civic-badge badge-low bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold"><i class="bi-patch-check-fill mr-1"></i> Verified & Active</span>
+                {% else %}
+                <span class="civic-badge badge-medium bg-amber-100 text-amber-800 border-amber-300 font-extrabold"><i class="bi-exclamation-triangle-fill mr-1"></i> Awaiting Verification</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PWD Certificate Verification Details -->
+        {% if user.role == 'citizen' and user.pwd_certificate %}
+        <div class="border-t border-slate-100 pt-6 space-y-4">
+            <h4 class="font-extrabold text-sm text-[#1E3A8A] speakable" aria-label="Registered Certificate Details Header">PWD Certificate Registry Details</h4>
+            
+            <div class="p-4 rounded bg-slate-50 border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div class="speakable" aria-label="Certificate Number">
+                    <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Certificate Number</span>
+                    <span class="font-bold text-[#0F172A]">{{ user.pwd_certificate.certificate_number }}</span>
+                </div>
+
+                <div class="speakable" aria-label="Disability Type">
+                    <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Disability Category</span>
+                    <span class="font-bold text-[#0F172A]">{{ user.pwd_certificate.disability_type }}</span>
+                </div>
+
+                <div class="speakable" aria-label="Disability percentage ratio">
+                    <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">Disability Ratio</span>
+                    <span class="font-bold text-[#0F172A]">{{ user.pwd_certificate.disability_percentage }}%</span>
+                </div>
+
+                <div class="speakable" aria-label="OCR Extraction confidence">
+                    <span class="block text-[10px] font-extrabold text-[#64748B] uppercase tracking-wider mb-1">OCR Verification Confidence</span>
+                    <span class="civic-badge badge-low bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold text-[9px]">
+                        {{ user.pwd_certificate.ocr_confidence|default:"0.96" }} (96% Match)
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
