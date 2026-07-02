@@ -84,13 +84,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'accessable_india.wsgi.application'
 
 # Database
-# Connects to PostgreSQL if URL env is provided, else falls back to local SQLite database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Uses PostgreSQL on Render (via DATABASE_URL env var), falls back to SQLite for local dev
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Custom User Configuration
 AUTH_USER_MODEL = 'core.User'
