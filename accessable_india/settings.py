@@ -23,6 +23,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!lwv9l_!rd_4^=8x(n#hgn01bz
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://accessibility-frication-rader-2.onrender.com',
+    'https://*.onrender.com',
+]
 
 # Application definition
 
