@@ -143,7 +143,7 @@ def register_view(request):
         except Exception as e:
             print(f"Welcome email error: {e}")
 
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         try:
             log_audit_event(user, "USER_REGISTRATION", request, f"Account created as role {role}")
         except Exception:
