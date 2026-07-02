@@ -193,6 +193,7 @@ SESSION_COOKIE_AGE = 3600  # Force logout after 1 hour of inactivity
 if not DEBUG:
     # 1. Force HTTPS
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
     # 2. Prevent XSS and Content Sniffing
     SECURE_BROWSER_XSS_FILTER = True
