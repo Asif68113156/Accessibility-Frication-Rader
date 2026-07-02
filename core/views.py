@@ -77,18 +77,23 @@ def register_view(request):
         if p != pc:
             return render(request, 'register.html', {'error': 'Passwords do not match.'})
         if User.objects.filter(username=u).exists():
-            return render(request, 'register.html', {'error': 'Username is already taken.'})
-            
+            return render(request, 'register.html', {'error': 'Username is already taken. Please choose a different one.'})
+        if e and User.objects.filter(email=e).exists():
+            return render(request, 'register.html', {'error': 'An account with this email address already exists. Please use a different email or sign in.'})
+
         # Create standard user
-        user = User.objects.create_user(
-            username=u,
-            email=e,
-            password=p,
-            first_name=first,
-            last_name=last,
-            role=role,
-            phone_number=phone
-        )
+        try:
+            user = User.objects.create_user(
+                username=u,
+                email=e,
+                password=p,
+                first_name=first,
+                last_name=last,
+                role=role,
+                phone_number=phone
+            )
+        except Exception as ex:
+            return render(request, 'register.html', {'error': f'Registration failed: {ex}. Please try again with different details.'})
         
         # Run OCR PWD Certificate engine if PWD citizen uploaded details instantly
         cert_num = request.POST.get('certificate_number')
