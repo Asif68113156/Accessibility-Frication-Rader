@@ -20,11 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!lwv9l_!rd_4^=8x(n#hgn01bz3*#55au+%*wx=iuflfua+rka')
 
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
-    'https://accessibility-frication-rader-2.onrender.com',
+    'https://accessibility-frication-rader-3.onrender.com',
     'https://*.onrender.com',
 ]
 
