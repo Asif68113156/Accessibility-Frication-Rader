@@ -40,11 +40,17 @@ def login_view(request):
         user = authenticate(request, username=u, password=p)
         if user is not None:
             login(request, user)
-            log_audit_event(user, "USER_LOGIN", request, "Login successful via standard form")
+            try:
+                log_audit_event(user, "USER_LOGIN", request, "Login successful via standard form")
+            except Exception:
+                pass
             messages.success(request, f"Welcome back, {user.username}!")
             return redirect('dashboard')
         else:
-            log_audit_event(None, "FAILED_LOGIN", request, f"Failed login attempt for username: {u}")
+            try:
+                log_audit_event(None, "FAILED_LOGIN", request, f"Failed login attempt for username: {u}")
+            except Exception:
+                pass
             return render(request, 'login.html', {'error': 'Invalid username or password credentials.'})
             
     return render(request, 'login.html')
@@ -138,7 +144,10 @@ def register_view(request):
             print(f"Welcome email error: {e}")
 
         login(request, user)
-        log_audit_event(user, "USER_REGISTRATION", request, f"Account created as role {role}")
+        try:
+            log_audit_event(user, "USER_REGISTRATION", request, f"Account created as role {role}")
+        except Exception:
+            pass
         messages.success(request, "Account registered successfully!")
         return redirect('dashboard')
         
